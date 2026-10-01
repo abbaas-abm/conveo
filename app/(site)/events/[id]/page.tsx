@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
   Images,
   MapPin,
@@ -11,6 +12,7 @@ import {
   Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RsvpButton } from "@/components/events/RsvpButton";
@@ -416,6 +418,26 @@ export default async function EventDetailPage(
                     Your seat is confirmed. Show your attendee tag at the door.
                   </p>
                 )}
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="mt-3 w-full"
+                >
+                  <Link
+                    href={
+                      user
+                        ? `/reflections?event=${event.id}`
+                        : `/login?redirectTo=${encodeURIComponent(
+                            `/reflections?event=${event.id}`,
+                          )}`
+                    }
+                  >
+                    Reflections
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
               </div>
             </Card>
 

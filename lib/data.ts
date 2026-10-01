@@ -4,6 +4,7 @@ import type {
   EventGalleryImage,
   Announcement,
   AnnouncementWithEvent,
+  ReflectionWithUser,
   ProgramBlock,
   Speaker,
   Profile,
@@ -247,6 +248,25 @@ export async function getRecentAnnouncements(
       .limit(limit);
     if (error) throw error;
     return (data ?? []) as unknown as AnnouncementWithEvent[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getReflections(
+  eventId?: string,
+): Promise<ReflectionWithUser[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  try {
+    let query = supabase
+      .from("reflections")
+      .select("*, user:profiles!user_id(first_name,last_name)")
+      .order("created_at", { ascending: false });
+    if (eventId) query = query.eq("event_id", eventId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []) as unknown as ReflectionWithUser[];
   } catch {
     return [];
   }

@@ -8,6 +8,7 @@ import {
   CalendarDays,
   FileText,
   LogOut,
+  StickyNote,
   User,
   Users,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: "/admin/people", label: "People", icon: Users },
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/reports", label: "Reports", icon: FileText },
+  { href: "/admin/reflections", label: "Reflections", icon: StickyNote },
 ];
 
 export function AdminShell({

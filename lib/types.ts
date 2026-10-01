@@ -98,6 +98,18 @@ export interface AnnouncementWithEvent extends Announcement {
   event: { id: string; title: string } | null;
 }
 
+export interface Reflection {
+  id: string;
+  event_id: string | null;
+  user_id: string | null;
+  content: string;
+  created_at: string;
+}
+
+export interface ReflectionWithUser extends Reflection {
+  user: { first_name: string | null; last_name: string | null } | null;
+}
+
 export interface Rsvp {
   id: string;
   attendee_id: string;
