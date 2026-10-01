@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
-  Images,
   MapPin,
   Megaphone,
   Users,
@@ -17,10 +16,11 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RsvpButton } from "@/components/events/RsvpButton";
 import { EventCountdown } from "@/components/events/EventCountdown";
+import { ExpandableSection } from "@/components/events/ExpandableSection";
 import { getCurrentUser } from "@/lib/auth";
-import { getEventById, getEventProgram, getSpeakersByEvent, getEventGallery, getEventAnnouncements } from "@/lib/data";
+import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements } from "@/lib/data";
 import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
-import { sanitizeHtml, hasMarkup } from "@/lib/rich-text";
+import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { ProgramBlockType, RsvpStatus } from "@/lib/types";
 
 const BLOCK_LABELS: Record<ProgramBlockType, string> = {
@@ -42,14 +42,12 @@ export default async function EventDetailPage(
     event,
     program,
     eventSpeakers,
-    gallery,
     announcements,
     { supabase, user, profile },
   ] = await Promise.all([
     getEventById(id),
     getEventProgram(id),
     getSpeakersByEvent(id),
-    getEventGallery(id),
     getEventAnnouncements(id),
     getCurrentUser(),
   ]);
@@ -167,30 +165,39 @@ export default async function EventDetailPage(
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
+          <div className="space-y-6 lg:order-1">
             <Card className="border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900">
                 About this event
               </h2>
-              {event.description && (
-                <p className="mt-4 text-base leading-relaxed text-gray-600">
-                  {event.description}
-                </p>
-              )}
-              {event.about &&
-                (hasMarkup(event.about) ? (
-                  <div
-                    className="prose prose-slate mt-5 max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
-                    dangerouslySetInnerHTML={{
-                      __html: sanitizeHtml(event.about),
-                    }}
-                  />
-                ) : (
-                  <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-600">
-                    {event.about}
-                  </p>
-                ))}
-              {!event.description && !event.about && (
+              {event.description || event.about ? (
+                <ExpandableSection
+                  enabled={
+                    (event.description?.length ?? 0) +
+                      richTextToPlain(event.about).length >
+                    400
+                  }
+                >
+                  {event.description && (
+                    <p className="mt-4 text-base leading-relaxed text-gray-600">
+                      {event.description}
+                    </p>
+                  )}
+                  {event.about &&
+                    (hasMarkup(event.about) ? (
+                      <div
+                        className="prose prose-slate mt-5 max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtml(event.about),
+                        }}
+                      />
+                    ) : (
+                      <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-600">
+                        {event.about}
+                      </p>
+                    ))}
+                </ExpandableSection>
+              ) : (
                 <p className="mt-4 text-sm text-gray-500">
                   Full event details will be published shortly.
                 </p>
@@ -206,6 +213,10 @@ export default async function EventDetailPage(
                   The programme for this event is being finalised.
                 </p>
               ) : (
+                <ExpandableSection
+                  enabled={program.length > 2}
+                  collapsedClassName="max-h-96"
+                >
                 <div className="mt-6 space-y-10">
                   {programDays.map(([day, dayBlocks]) => (
                     <div key={day}>
@@ -289,6 +300,7 @@ export default async function EventDetailPage(
                     </div>
                   ))}
                 </div>
+                </ExpandableSection>
               )}
             </Card>
 
@@ -338,34 +350,9 @@ export default async function EventDetailPage(
                 </div>
               </Card>
             )}
-
-            {gallery.length > 0 && (
-              <Card className="border-gray-200 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                  <Images className="size-5 text-gray-400" />
-                  Gallery
-                </h2>
-                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {gallery.map((image) => (
-                    <div
-                      key={image.id}
-                      className="relative aspect-square overflow-hidden rounded-lg bg-slate-100"
-                    >
-                      <Image
-                        src={image.image_url}
-                        alt={image.file_name}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 300px"
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
           </div>
 
-          <aside className="space-y-6 lg:sticky lg:top-20 lg:h-fit">
+          <aside className="order-first space-y-6 lg:order-2 lg:sticky lg:top-20 lg:h-fit">
             <EventCountdown initialSeconds={secondsUntil(event.start_date)} />
             <Card className="border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900">
