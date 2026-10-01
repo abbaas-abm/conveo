@@ -78,10 +78,29 @@ function toForm(event: EventRecord): FormState {
   };
 }
 
-export function EventEditor({ event }: { event: EventRecord }) {
-  const [tab, setTab] = React.useState<Tab>("Information");
+export function EventEditor({
+  event,
+  initialTab,
+}: {
+  event: EventRecord;
+  initialTab?: string;
+}) {
+  const [tab, setTab] = React.useState<Tab>(() =>
+    initialTab && (TABS as readonly string[]).includes(initialTab)
+      ? (initialTab as Tab)
+      : "Information",
+  );
   const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState<FormState>(toForm(event));
+
+  function selectTab(next: Tab) {
+    setTab(next);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", next);
+      window.history.replaceState(null, "", url.toString());
+    }
+  }
 
   async function save(draft?: FormState) {
     const data = draft ?? form;
@@ -174,7 +193,7 @@ export function EventEditor({ event }: { event: EventRecord }) {
             <button
               key={item}
               type="button"
-              onClick={() => setTab(item)}
+              onClick={() => selectTab(item)}
               className={cn(
                 "relative whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors",
                 tab === item

@@ -206,6 +206,7 @@ export function AvatarUploader({
               alt="Crop preview"
               draggable={false}
               onLoad={onImageLoad}
+              className="max-w-none"
               style={{
                 position: "absolute",
                 left: 0,

@@ -106,8 +106,12 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
     }
 
     if (data.onboarding === "DONE") {
-      if (redirectTo && redirectTo.startsWith("/")) return redirectTo;
-      return data.role === "admin" ? "/admin" : "/user";
+      if (data.role === "admin") {
+        return redirectTo && redirectTo.startsWith("/admin")
+          ? redirectTo
+          : "/admin";
+      }
+      return redirectTo && redirectTo.startsWith("/") ? redirectTo : "/user";
     }
     return "/onboarding";
   }

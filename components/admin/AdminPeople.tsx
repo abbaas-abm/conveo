@@ -71,14 +71,14 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="size-4" />
-          {items.length} {items.length === 1 ? "person" : "people"}
+          {items.length} {items.length === 1 ? "user" : "users"}
         </div>
         <div className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search people..."
+            placeholder="Search users..."
             className="pl-10"
           />
         </div>
@@ -88,7 +88,7 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
         <Card className="flex flex-col items-center justify-center border-dashed border-gray-300 bg-white px-6 py-16 text-center">
           <Users className="size-6 text-gray-400" />
           <h3 className="mt-3 text-base font-semibold text-gray-900">
-            No people found
+            No users found
           </h3>
           <p className="mt-1 text-sm text-gray-600">
             Try a different search term.

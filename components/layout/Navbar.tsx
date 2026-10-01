@@ -90,7 +90,9 @@ export function Navbar({ profile }: { profile: Profile | null }) {
           {profile ? (
             <>
               <Button asChild size="sm">
-                <Link href="/user">Dashboard</Link>
+                    <Link href={profile.role === "admin" ? "/admin" : "/user"}>
+                      Dashboard
+                    </Link>
               </Button>
               <Button
                 variant="ghost"
@@ -155,7 +157,9 @@ export function Navbar({ profile }: { profile: Profile | null }) {
               {profile ? (
                 <>
                   <Button asChild onClick={() => setOpen(false)}>
-                    <Link href="/user">Dashboard</Link>
+                <Link href={profile.role === "admin" ? "/admin" : "/user"}>
+                  Dashboard
+                </Link>
                   </Button>
                   <Button
                     variant="outline"

@@ -9,9 +9,15 @@ export default async function AdminEventEditPage(
   props: PageProps<"/admin/events/[id]">,
 ) {
   const { id } = await props.params;
+  const { tab } = await props.searchParams;
   const event = await getEventById(id);
 
   if (!event) notFound();
 
-  return <EventEditor event={event} />;
+  return (
+    <EventEditor
+      event={event}
+      initialTab={typeof tab === "string" ? tab : undefined}
+    />
+  );
 }

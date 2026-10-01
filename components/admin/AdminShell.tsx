@@ -33,7 +33,7 @@ import type { Profile } from "@/lib/types";
 
 const NAV_ITEMS = [
   { href: "/admin/profile", label: "Profile", icon: User },
-  { href: "/admin/people", label: "People", icon: Users },
+  { href: "/admin/people", label: "Users", icon: Users },
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/reflections", label: "Reflections", icon: StickyNote },

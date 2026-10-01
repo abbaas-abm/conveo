@@ -37,6 +37,7 @@ export async function updateSession(request: NextRequest) {
   const isAdminArea = path === "/admin" || path.startsWith("/admin/");
   const isVolunteerArea =
     path === "/volunteer" || path.startsWith("/volunteer/");
+  const isUserArea = path === "/user" || path.startsWith("/user/");
   const isProtected = PROTECTED_PREFIXES.some(
     (prefix) => path === prefix || path.startsWith(`${prefix}/`),
   );
@@ -48,7 +49,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (isAdminArea || isVolunteerArea || AUTH_ROUTES.includes(path))) {
+  if (
+    user &&
+    (isAdminArea ||
+      isVolunteerArea ||
+      isUserArea ||
+      AUTH_ROUTES.includes(path))
+  ) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("onboarding, role")
@@ -66,9 +73,21 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
+    // Admins have their own dashboard and must not use the user dashboard.
+    if (isUserArea && isAdmin) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
     if (isVolunteerArea && !isVolunteer) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = onboarded ? "/user" : "/onboarding";
+      redirectUrl.pathname = isAdmin
+        ? "/admin"
+        : onboarded
+          ? "/user"
+          : "/onboarding";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
@@ -79,8 +98,6 @@ export async function updateSession(request: NextRequest) {
         redirectUrl.pathname = "/onboarding";
       } else if (isAdmin) {
         redirectUrl.pathname = "/admin";
-      } else if (isVolunteer) {
-        redirectUrl.pathname = "/volunteer";
       } else {
         redirectUrl.pathname = "/user";
       }

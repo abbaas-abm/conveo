@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { FileText } from "lucide-react";
-import { AdminPlaceholder } from "@/components/admin/AdminPlaceholder";
+import { getEvents } from "@/lib/data";
+import { AdminReports } from "@/components/admin/AdminReports";
 
 export const metadata: Metadata = { title: "Admin · Reports" };
 
-export default function AdminReportsPage() {
+export default async function AdminReportsPage() {
+  const events = await getEvents();
+
   return (
     <div className="p-4 sm:p-6">
-      <AdminPlaceholder
-        title="Reports"
-        description="Generate and export reports across events, attendance, RSVPs and feedback."
-        icon={<FileText className="size-5" />}
-      />
+      <AdminReports events={events} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ export default async function UserPage() {
   if (!user) redirect("/login?redirectTo=/user");
   if (profile && profile.onboarding !== "DONE") redirect("/onboarding");
   if (!profile) redirect("/login");
+  if (profile.role === "admin") redirect("/admin");
 
   const rsvps = await getUserRsvps(user.id);
   const firstName = profile.first_name ?? "Leader";
