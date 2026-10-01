@@ -63,7 +63,9 @@ export function VolunteerDashboard({
           </Button>
         </div>
         <div className="mx-auto max-w-2xl px-4 pb-4">
-          <h1 className="text-xl font-semibold">Volunteer Dashboard</h1>
+          <h1 className="text-xl font-semibold text-white">
+            Volunteer Dashboard
+          </h1>
           <p className="text-sm text-white/70">
             Welcome{profile.first_name ? `, ${profile.first_name}` : ""}
           </p>

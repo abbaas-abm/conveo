@@ -26,7 +26,6 @@ import { cn, formatDate, formatTime } from "@/lib/utils";
 import type { Feedback } from "@/lib/types";
 
 const GOLD = "#d9b45b";
-const FEEDBACK_BASE_URL = "https://conveo.co.za/feedback";
 
 function Stars({ rating, size = "size-4" }: { rating: number; size?: string }) {
   return (
@@ -50,9 +49,8 @@ export function EventFeedbackTab({ event }: { event: { id: string } }) {
   const [loading, setLoading] = React.useState(true);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [qr, setQr] = React.useState<string | null>(null);
+  const [shareUrl, setShareUrl] = React.useState("");
   const [copied, setCopied] = React.useState(false);
-
-  const shareUrl = `${FEEDBACK_BASE_URL}/${event.id}`;
 
   React.useEffect(() => {
     let active = true;
@@ -80,8 +78,10 @@ export function EventFeedbackTab({ event }: { event: { id: string } }) {
   async function openShare() {
     setCopied(false);
     setShareOpen(true);
+    const url = `${window.location.origin}/feedback/${event.id}`;
+    setShareUrl(url);
     try {
-      const dataUrl = await QRCode.toDataURL(shareUrl, {
+      const dataUrl = await QRCode.toDataURL(url, {
         width: 720,
         margin: 2,
         color: { dark: "#003366", light: "#ffffff" },

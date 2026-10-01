@@ -28,7 +28,7 @@ export function HistoryPanel({ volunteerId }: { volunteerId: string }) {
       const { data, error } = await supabase
         .from("attendance")
         .select(
-          "id, event_id, attendee_id, created_at, event:events(*), attendee:profiles(*)",
+          "id, event_id, attendee_id, created_at, event:events!event_id(*), attendee:profiles!attendee_id(*)",
         )
         .eq("volunteer_id", volunteerId)
         .order("created_at", { ascending: false });
