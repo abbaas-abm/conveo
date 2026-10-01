@@ -1,0 +1,62 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export function Hero() {
+  return (
+    <section className="relative isolate flex min-h-[76vh] items-center justify-center overflow-hidden">
+      <Image
+        src="/wits-hero.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-primary/85" />
+
+      <div className="relative z-10 mx-auto max-w-3xl px-6 py-20 text-center sm:py-24">
+        <Image
+          src="/slc-logo.png"
+          alt="University of the Witwatersrand"
+          width={260}
+          height={59}
+          priority
+          className="mx-auto h-10 w-auto sm:h-12"
+        />
+
+        <h1 className="mt-8 text-3xl font-semibold leading-tight text-balance text-white sm:text-5xl">
+          Empowering Wits change makers &amp; future leaders
+        </h1>
+
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg">
+          Unlocking personal, social and professional growth through
+          transformative leadership, innovation and experiential learning for
+          students across every Wits faculty.
+        </p>
+
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <Button
+            asChild
+            size="lg"
+            className="bg-white text-primary hover:bg-slate-100"
+          >
+            <Link href="/events">
+              Explore events &amp; RSVP
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white"
+          >
+            <Link href="/about">Learn about our programmes</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
