@@ -99,7 +99,7 @@ export function ProfilePanel({ profile }: { profile: Profile }) {
     <div className="space-y-6">
       <Card className="border-gray-200">
         <CardHeader className="flex flex-row items-center gap-4">
-          <div className="flex size-14 items-center justify-center rounded-full bg-primary text-lg font-medium text-white">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-medium text-white">
             {av || <UserRound className="size-6" />}
           </div>
           <div>

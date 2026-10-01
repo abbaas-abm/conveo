@@ -101,7 +101,7 @@ export function Navbar({ profile }: { profile: Profile | null }) {
                 <LogOut className="size-4" />
                 Sign Out
               </Button>
-              <span className="ml-1 flex size-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+              <span className="ml-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
                 {initials(profile.first_name, profile.last_name)}
               </span>
             </>

@@ -87,6 +87,17 @@ export interface EventGalleryImage {
   created_at: string;
 }
 
+export interface Announcement {
+  id: string;
+  event_id: string | null;
+  text: string;
+  created_at: string;
+}
+
+export interface AnnouncementWithEvent extends Announcement {
+  event: { id: string; title: string } | null;
+}
+
 export interface Rsvp {
   id: string;
   attendee_id: string;

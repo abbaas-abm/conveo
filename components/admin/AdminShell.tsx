@@ -6,10 +6,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
-  HeartHandshake,
+  FileText,
   LogOut,
-  Mic2,
-  Tag,
   User,
   Users,
 } from "lucide-react";
@@ -36,9 +34,7 @@ const NAV_ITEMS = [
   { href: "/admin/profile", label: "Profile", icon: User },
   { href: "/admin/people", label: "People", icon: Users },
   { href: "/admin/events", label: "Events", icon: CalendarDays },
-  { href: "/admin/tags", label: "Tags", icon: Tag },
-  { href: "/admin/volunteers", label: "Volunteers", icon: HeartHandshake },
-  { href: "/admin/speakers", label: "Speakers", icon: Mic2 },
+  { href: "/admin/reports", label: "Reports", icon: FileText },
 ];
 
 export function AdminShell({
@@ -154,7 +150,7 @@ export function AdminShell({
               </p>
               <p className="text-xs text-muted-foreground">Administrator</p>
             </div>
-            <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
               {initials(profile.first_name, profile.last_name)}
             </span>
           </div>

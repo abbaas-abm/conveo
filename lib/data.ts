@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   EventRecord,
   EventGalleryImage,
+  Announcement,
+  AnnouncementWithEvent,
   ProgramBlock,
   Speaker,
   Profile,
@@ -209,6 +211,42 @@ export async function getEventGallery(
       .order("display_order", { ascending: true });
     if (error) throw error;
     return (data ?? []) as EventGalleryImage[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getEventAnnouncements(
+  eventId: string,
+): Promise<Announcement[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("announcements")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Announcement[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getRecentAnnouncements(
+  limit = 5,
+): Promise<AnnouncementWithEvent[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("announcements")
+      .select("id, event_id, text, created_at, event:events(id, title)")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as unknown as AnnouncementWithEvent[];
   } catch {
     return [];
   }

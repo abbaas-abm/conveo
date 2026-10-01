@@ -360,7 +360,7 @@ export function EventProgramTab({ event }: { event: EventRecord }) {
                     </span>
                   ))}
                   {block.speakers.length > 4 && (
-                    <span className="flex size-8 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-semibold text-gray-600">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-semibold text-gray-600">
                       +{block.speakers.length - 4}
                     </span>
                   )}

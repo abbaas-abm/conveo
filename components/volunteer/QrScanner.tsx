@@ -245,7 +245,7 @@ export function QrScanner({
           {phase === "found" && attendee && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                   {initials(
                     attendee.name.split(" ")[0],
                     attendee.name.split(" ")[1],
@@ -286,7 +286,7 @@ export function QrScanner({
           {phase === "no-rsvp" && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="flex size-12 items-center justify-center rounded-full bg-red-50 text-destructive">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-red-50 text-destructive">
                   <XCircle className="size-6" />
                 </span>
                 <div>
@@ -308,7 +308,7 @@ export function QrScanner({
           {phase === "checked-in" && attendee && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                   <CheckCircle2 className="size-6" />
                 </span>
                 <div>

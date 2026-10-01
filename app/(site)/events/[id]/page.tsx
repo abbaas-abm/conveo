@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Images,
   MapPin,
+  Megaphone,
   Users,
   Video,
 } from "lucide-react";
@@ -15,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { RsvpButton } from "@/components/events/RsvpButton";
 import { EventCountdown } from "@/components/events/EventCountdown";
 import { getCurrentUser } from "@/lib/auth";
-import { getEventById, getEventProgram, getSpeakersByEvent, getEventGallery } from "@/lib/data";
+import { getEventById, getEventProgram, getSpeakersByEvent, getEventGallery, getEventAnnouncements } from "@/lib/data";
 import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup } from "@/lib/rich-text";
 import type { ProgramBlockType, RsvpStatus } from "@/lib/types";
@@ -35,14 +36,21 @@ export default async function EventDetailPage(
   props: PageProps<"/events/[id]">,
 ) {
   const { id } = await props.params;
-  const [event, program, eventSpeakers, gallery, { supabase, user, profile }] =
-    await Promise.all([
-      getEventById(id),
-      getEventProgram(id),
-      getSpeakersByEvent(id),
-      getEventGallery(id),
-      getCurrentUser(),
-    ]);
+  const [
+    event,
+    program,
+    eventSpeakers,
+    gallery,
+    announcements,
+    { supabase, user, profile },
+  ] = await Promise.all([
+    getEventById(id),
+    getEventProgram(id),
+    getSpeakersByEvent(id),
+    getEventGallery(id),
+    getEventAnnouncements(id),
+    getCurrentUser(),
+  ]);
 
   if (!event) notFound();
 
@@ -410,6 +418,34 @@ export default async function EventDetailPage(
                 )}
               </div>
             </Card>
+
+            {announcements.length > 0 && (
+              <Card className="border-gray-200 p-6">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Megaphone className="size-5 text-primary" />
+                  Announcements
+                </h2>
+                <div className="mt-4 space-y-4">
+                  {announcements.map((announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="rounded-lg border border-gray-200 bg-slate-50 p-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                        From the DLU Team
+                      </p>
+                      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                        {announcement.text}
+                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {formatDate(announcement.created_at)} ·{" "}
+                        {formatTime(announcement.created_at)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </aside>
         </div>
       </div>

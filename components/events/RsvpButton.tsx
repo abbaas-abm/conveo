@@ -201,7 +201,7 @@ export function RsvpButton({
                   </span>
                   <span
                     className={cn(
-                      "flex size-5 items-center justify-center rounded-full border",
+                      "flex size-5 shrink-0 items-center justify-center rounded-full border",
                       active
                         ? "border-primary bg-primary text-white"
                         : "border-gray-300",
