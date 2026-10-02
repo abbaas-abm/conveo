@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# Next.js build output
+.next
+out
+build
+
+# Git / editor / OS
+.git
+.gitignore
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# Env & secrets (never bake into the image; public ones are passed as build args)
+.env
+.env.*
+!.env.local.example
+
+# Docs & local-only
+README.md
+*.md
+!AGENTS.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Misc
+.vercel
+coverage
