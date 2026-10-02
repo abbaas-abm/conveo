@@ -4,6 +4,7 @@ import * as React from "react";
 import jsQR from "jsqr";
 import {
   CheckCircle2,
+  Info,
   Loader2,
   ScanLine,
   UserRound,
@@ -16,7 +17,13 @@ import { createClient } from "@/lib/supabase/client";
 import { initials } from "@/lib/utils";
 import type { EventRecord, UserPosition } from "@/lib/types";
 
-type Phase = "scanning" | "loading" | "found" | "no-registration" | "checked-in";
+type Phase =
+  | "scanning"
+  | "loading"
+  | "found"
+  | "no-registration"
+  | "already-checked-in"
+  | "checked-in";
 
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
@@ -170,6 +177,29 @@ export function QrScanner({
     setPhase("loading");
     try {
       const supabase = createClient();
+
+      // Only one check-in per attendee per calendar day. If a record already
+      // exists for today, stop and tell the operator.
+      const dayStart = new Date();
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const { data: existing, error: checkError } = await supabase
+        .from("attendance")
+        .select("id")
+        .eq("event_id", event.id)
+        .eq("attendee_id", attendee.id)
+        .gte("created_at", dayStart.toISOString())
+        .lt("created_at", dayEnd.toISOString())
+        .maybeSingle();
+      if (checkError) throw checkError;
+
+      if (existing) {
+        setPhase("already-checked-in");
+        return;
+      }
+
       const { error: insertError } = await supabase
         .from("attendance")
         .insert({
@@ -318,6 +348,28 @@ export function QrScanner({
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Attendance recorded successfully.
+                  </p>
+                </div>
+              </div>
+              <Button size="lg" className="w-full" onClick={scanNext}>
+                <ScanLine className="size-5" />
+                Scan next
+              </Button>
+            </div>
+          )}
+
+          {phase === "already-checked-in" && attendee && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                  <Info className="size-6" />
+                </span>
+                <div>
+                  <p className="text-base font-semibold text-gray-900">
+                    {attendee.name || "Attendee"} already checked in
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    They have already been checked in today.
                   </p>
                 </div>
               </div>

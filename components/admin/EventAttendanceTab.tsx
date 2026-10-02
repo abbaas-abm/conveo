@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   CalendarCheck,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Search,
@@ -74,7 +75,19 @@ function countBy<T extends string>(values: T[]) {
   }, {});
 }
 
-export function EventAttendanceTab({ event }: { event: { id: string } }) {
+function dayKey(dateISO: string) {
+  const d = new Date(dateISO);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function EventAttendanceTab({
+  event,
+}: {
+  event: { id: string };
+}) {
   const [rows, setRows] = React.useState<AttendanceRow[]>([]);
   const [positions, setPositions] = React.useState<Record<string, UserPosition>>(
     {},
@@ -82,7 +95,15 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [faculty, setFaculty] = React.useState("ALL");
+  const [dayFilter, setDayFilter] = React.useState<"ALL" | number>("ALL");
   const [page, setPage] = React.useState(1);
+
+  // Distinct calendar dates that actually have attendance, in chronological
+  // order. Day 1 = first date with a check-in, Day 2 = the next, etc.
+  const dayKeys = React.useMemo(() => {
+    const set = new Set(rows.map((r) => dayKey(r.created_at)));
+    return Array.from(set).sort();
+  }, [rows]);
 
   React.useEffect(() => {
     let active = true;
@@ -124,42 +145,52 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
   }, [event.id]);
 
   const total = rows.length;
+
+  const dayRows = React.useMemo(() => {
+    if (dayFilter === "ALL") return rows;
+    const key = dayKeys[dayFilter - 1];
+    if (!key) return [];
+    return rows.filter((r) => dayKey(r.created_at) === key);
+  }, [rows, dayFilter, dayKeys]);
+
   const genderData = React.useMemo(() => {
-    const counts = countBy(rows.map((r) => normalizeGender(r.attendee?.gender)));
+    const counts = countBy(
+      dayRows.map((r) => normalizeGender(r.attendee?.gender)),
+    );
     return ["Male", "Female"]
       .map((name) => ({ name, value: counts[name] ?? 0 }))
       .filter((d) => d.value > 0);
-  }, [rows]);
+  }, [dayRows]);
 
   const positionData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => {
+      dayRows.map((r) => {
         const p = positions[r.attendee_id];
         return p ? POSITION_LABELS[p] : "Unknown";
       }),
     );
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [rows, positions]);
+  }, [dayRows, positions]);
 
   const facultyData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => r.attendee?.faculty || "Unspecified"),
+      dayRows.map((r) => r.attendee?.faculty || "Unspecified"),
     );
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [rows]);
+  }, [dayRows]);
 
   const yearData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => r.attendee?.year_of_study || "Unspecified"),
+      dayRows.map((r) => r.attendee?.year_of_study || "Unspecified"),
     );
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [rows]);
+  }, [dayRows]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
+    return dayRows.filter((r) => {
       const matchesFaculty =
         faculty === "ALL" || (r.attendee?.faculty ?? "") === faculty;
       if (!matchesFaculty) return false;
@@ -172,7 +203,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
         (r.attendee?.person_number ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, query, faculty]);
+  }, [dayRows, query, faculty]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -219,7 +250,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total attended" value={total} />
+        <StatCard label="Total attended" value={dayRows.length} />
         <StatCard label="Male" value={maleCount} variant="male" />
         <StatCard label="Female" value={femaleCount} variant="female" />
       </div>
@@ -240,6 +271,36 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
       </div>
 
       <Card className="border-gray-200 p-0">
+        {dayKeys.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 p-4">
+            <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <CalendarDays className="size-3.5" />
+              Day
+            </span>
+            <DayPill
+              active={dayFilter === "ALL"}
+              onClick={() => {
+                setDayFilter("ALL");
+                setPage(1);
+              }}
+            >
+              All days
+            </DayPill>
+            {dayKeys.map((key, index) => (
+              <DayPill
+                key={key}
+                active={dayFilter === index + 1}
+                onClick={() => {
+                  setDayFilter(index + 1);
+                  setPage(1);
+                }}
+              >
+                Day {index + 1}
+              </DayPill>
+            ))}
+          </div>
+        )}
+
         <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <UserCheck className="size-4" />
@@ -376,6 +437,31 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
         )}
       </Card>
     </div>
+  );
+}
+
+function DayPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        active
+          ? "border-primary bg-primary text-white"
+          : "border-gray-200 bg-white text-gray-600 hover:border-primary/40 hover:text-primary",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

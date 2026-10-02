@@ -78,7 +78,7 @@ export function AdminShell({
       <Sidebar collapsible="icon">
         <SidebarHeader className="h-14 justify-center px-3">
           <Link
-            href="/admin"
+            href="/"
             className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center"
           >
             <Image

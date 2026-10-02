@@ -1,50 +1,21 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   CalendarDays,
-  CalendarX2,
   Clock,
   Download,
-  Loader2,
   MapPin,
   Ticket,
   Video,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { RegistrationWithEvent } from "@/lib/data";
 
 export function MyEventsPanel({ registrations }: { registrations: RegistrationWithEvent[] }) {
-  const router = useRouter();
-  const [pendingId, setPendingId] = React.useState<string | null>(null);
-
-  async function cancelRegistration(registration: RegistrationWithEvent) {
-    setPendingId(registration.id);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("registrations")
-        .update({ status: "CANCELLED" })
-        .eq("id", registration.id);
-      if (error) throw error;
-      toast.success("Registration cancelled.");
-      router.refresh();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not cancel registration.",
-      );
-    } finally {
-      setPendingId(null);
-    }
-  }
-
   if (registrations.length === 0) {
     return (
       <Card className="flex flex-col items-center justify-center border-dashed border-gray-300 bg-slate-50 px-6 py-14 text-center">
@@ -68,6 +39,7 @@ export function MyEventsPanel({ registrations }: { registrations: RegistrationWi
       {registrations.map((registration) => {
         const event = registration.event;
         const isConfirmed = registration.status === "CONFIRMED";
+        const hasTag = isConfirmed && Boolean(registration.attendee_tag_url);
         return (
           <Card key={registration.id} className="border-gray-200 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -112,9 +84,14 @@ export function MyEventsPanel({ registrations }: { registrations: RegistrationWi
                 </div>
               </div>
 
-              <div className="flex shrink-0 gap-2">
-                {isConfirmed && registration.attendee_tag_url && (
-                  <Button asChild variant="default" size="sm">
+              <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
+                {hasTag && (
+                  <Button
+                    asChild
+                    variant="default"
+                    size="sm"
+                    className="flex-1 sm:flex-none"
+                  >
                     <a
                       href={`${registration.attendee_tag_url}?download`}
                       target="_blank"
@@ -126,25 +103,14 @@ export function MyEventsPanel({ registrations }: { registrations: RegistrationWi
                     </a>
                   </Button>
                 )}
-                <Button asChild variant="outline" size="sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none"
+                >
                   <Link href={`/events/${event.id}`}>View</Link>
                 </Button>
-                {isConfirmed && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:bg-red-50 hover:text-destructive"
-                    onClick={() => cancelRegistration(registration)}
-                    disabled={pendingId === registration.id}
-                  >
-                    {pendingId === registration.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <CalendarX2 className="size-4" />
-                    )}
-                    Cancel
-                  </Button>
-                )}
               </div>
             </div>
           </Card>

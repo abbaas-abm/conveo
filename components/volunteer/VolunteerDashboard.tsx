@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { History, LogOut, ScanLine, UserRound } from "lucide-react";
+import { History, LogOut, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfilePanel } from "@/components/dashboard/ProfilePanel";
 import { ScannerPanel } from "@/components/volunteer/ScannerPanel";
 import { HistoryPanel } from "@/components/volunteer/HistoryPanel";
 import { createClient } from "@/lib/supabase/client";
@@ -42,7 +42,11 @@ export function VolunteerDashboard({
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-30 bg-primary text-white">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between gap-3 px-4">
-          <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-3"
+            aria-label="CSD home"
+          >
             <Image
               src="/slc-logo.png"
               alt="University of the Witwatersrand"
@@ -50,7 +54,7 @@ export function VolunteerDashboard({
               height={34}
               className="h-7 w-auto"
             />
-          </div>
+          </Link>
           <Button
             variant="outline"
             size="sm"
@@ -73,12 +77,8 @@ export function VolunteerDashboard({
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6">
-        <Tabs defaultValue="profile">
-          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-white p-1.5 shadow-sm">
-            <TabsTrigger value="profile" className="flex-col gap-1 py-2 text-xs">
-              <UserRound className="size-4" />
-              My Profile
-            </TabsTrigger>
+        <Tabs defaultValue="scanner">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-white p-1.5 shadow-sm">
             <TabsTrigger value="scanner" className="flex-col gap-1 py-2 text-xs">
               <ScanLine className="size-4" />
               Scanner
@@ -89,9 +89,6 @@ export function VolunteerDashboard({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile">
-            <ProfilePanel profile={profile} />
-          </TabsContent>
           <TabsContent value="scanner">
             <ScannerPanel volunteerId={volunteerId} />
           </TabsContent>

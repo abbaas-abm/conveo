@@ -149,7 +149,7 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
                           disabled={savingId === person.id}
                         >
                           <SelectTrigger className="w-36">
-                            <SelectValue />
+                            <SelectValue>{roleLabel(person.role)}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {ROLES.map((role) => (
