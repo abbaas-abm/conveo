@@ -37,6 +37,7 @@ const registrationWorker = new Worker<RegistrationJob>(
         ...job.data.data,
         position: job.data.data.position as UserPosition,
       },
+      throwOnError: true,
     });
     log(job, `confirmation processed for ${job.data.data.email}`);
   },
@@ -47,7 +48,11 @@ const pledgeWorker = new Worker<PledgeJob>(
   "pledges",
   async (job) => {
     const supabase = createAdminClient();
-    await deliverPledgeDocument({ supabase, pledgeId: job.data.pledgeId });
+    await deliverPledgeDocument({
+      supabase,
+      pledgeId: job.data.pledgeId,
+      throwOnError: true,
+    });
     log(job, `pledge document processed for ${job.data.pledgeId}`);
   },
   { connection, concurrency: 4 },
@@ -61,6 +66,7 @@ const reportWorker = new Worker<ReportJob>(
       supabase,
       to: job.data.to,
       eventId: job.data.eventId,
+      throwOnError: true,
     });
     log(job, `report processed for ${job.data.to}`);
   },

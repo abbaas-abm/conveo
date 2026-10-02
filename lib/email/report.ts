@@ -46,10 +46,12 @@ export async function deliverEventReport({
   supabase,
   to,
   eventId,
+  throwOnError = false,
 }: {
   supabase: SupabaseClient;
   to: string;
   eventId: string;
+  throwOnError?: boolean;
 }) {
   try {
     const key = process.env.PLUNK_SECRET_KEY;
@@ -190,5 +192,6 @@ export async function deliverEventReport({
     console.log(`Event report sent for "${event.title}" to ${to}`);
   } catch (error) {
     console.error("Event report delivery failed:", error);
+    if (throwOnError) throw error;
   }
 }

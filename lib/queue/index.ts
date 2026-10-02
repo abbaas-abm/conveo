@@ -78,8 +78,8 @@ export async function enqueue(
   if (!queues) return false;
   try {
     await queues[queue].add(jobName, data, {
-      attempts: 5,
-      backoff: { type: "exponential", delay: 5000 },
+      attempts: 6,
+      backoff: { type: "exponential", delay: 10000 },
       removeOnComplete: 1000,
       removeOnFail: 5000,
     });

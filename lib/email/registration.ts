@@ -74,10 +74,12 @@ export async function deliverRegistrationEmail({
   supabase,
   registrationId,
   data,
+  throwOnError = false,
 }: {
   supabase: SupabaseClient;
   registrationId: string;
   data: RegistrationEmailData;
+  throwOnError?: boolean;
 }) {
   try {
     const key = process.env.PLUNK_SECRET_KEY;
@@ -150,5 +152,6 @@ export async function deliverRegistrationEmail({
     console.log(`Attendee tag stored at ${publicUrl.publicUrl}`);
   } catch (error) {
     console.error("Registration confirmation email failed:", error);
+    if (throwOnError) throw error;
   }
 }

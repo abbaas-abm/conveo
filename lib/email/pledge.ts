@@ -17,9 +17,11 @@ function formatSignedAt(iso: string) {
 export async function deliverPledgeDocument({
   supabase,
   pledgeId,
+  throwOnError = false,
 }: {
   supabase: SupabaseClient;
   pledgeId: string;
+  throwOnError?: boolean;
 }) {
   try {
     const key = process.env.PLUNK_SECRET_KEY;
@@ -112,5 +114,6 @@ export async function deliverPledgeDocument({
     console.log(`Pledge certificate sent for "${event.title}" to ${profile.email}`);
   } catch (error) {
     console.error("Pledge document delivery failed:", error);
+    if (throwOnError) throw error;
   }
 }
