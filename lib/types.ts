@@ -53,6 +53,9 @@ export interface EventRecord {
   has_programme: boolean;
   has_speakers: boolean;
   has_media: boolean;
+  has_pledges: boolean;
+  has_reflections: boolean;
+  has_feedback: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -113,6 +116,23 @@ export interface Reflection {
 
 export interface ReflectionWithUser extends Reflection {
   user: { first_name: string | null; last_name: string | null } | null;
+}
+
+export interface Pledge {
+  id: string;
+  user_id: string | null;
+  event_id: string | null;
+  pledge_text: string;
+  pledge_document_url: string | null;
+  created_at: string;
+}
+
+export interface PledgeWithUser extends Pledge {
+  user: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
 }
 
 export interface Registration {

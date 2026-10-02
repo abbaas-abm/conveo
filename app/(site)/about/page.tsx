@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import {
   Building2,
   HeartHandshake,
@@ -7,7 +8,6 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { PageHero } from "@/components/layout/PageHero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CoreUnits } from "@/components/home/CoreUnits";
@@ -59,11 +59,34 @@ const PILLARS: { icon: LucideIcon; title: string; text: string }[] = [
 export default function AboutPage() {
   return (
     <>
-      <PageHero
-        eyebrow="About the CSD"
-        title="A dynamic, innovative centre for student development"
-        subtitle="The Centre for Student Development is a unit within the Division of Student Affairs at Wits University, integrating and enhancing student development and support services."
-      />
+      <section className="relative overflow-hidden bg-primary text-white">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-20">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#d9b45b]">
+              About the CSD
+            </span>
+            <h1 className="mt-3 text-3xl font-bold leading-tight text-balance text-white sm:text-4xl lg:text-5xl">
+              A dynamic, innovative centre for student development
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
+              The Centre for Student Development is a unit within the Division
+              of Student Affairs at Wits University, integrating and enhancing
+              student development and support services.
+            </p>
+          </div>
+
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/15 shadow-2xl lg:justify-self-end lg:max-w-md">
+            <Image
+              src="/img-about-1.jpg"
+              alt="Wits students at a CSD event"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 480px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">

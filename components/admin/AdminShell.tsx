@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
+  FileSignature,
   FileText,
   LogOut,
   StickyNote,
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/reflections", label: "Reflections", icon: StickyNote },
+  { href: "/admin/pledges", label: "Pledges", icon: FileSignature },
 ];
 
 export function AdminShell({

@@ -5,6 +5,7 @@ import type {
   Announcement,
   AnnouncementWithEvent,
   ReflectionWithUser,
+  PledgeWithUser,
   ProgramBlock,
   Speaker,
   Profile,
@@ -267,6 +268,24 @@ export async function getReflections(
     const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as unknown as ReflectionWithUser[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getPledgesForEvent(
+  eventId: string,
+): Promise<PledgeWithUser[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("pledges")
+      .select("*, user:profiles!user_id(first_name,last_name,email)")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as unknown as PledgeWithUser[];
   } catch {
     return [];
   }

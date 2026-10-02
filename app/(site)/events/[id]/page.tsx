@@ -102,17 +102,6 @@ export default async function EventDetailPage(
           </Link>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Badge
-              variant={
-                event.status === "OPEN"
-                  ? "success"
-                  : event.status === "CLOSED"
-                    ? "warning"
-                    : "destructive"
-              }
-            >
-              {event.status}
-            </Badge>
             <Badge variant="outline">
               {event.mode === "ONLINE" ? (
                 <>
@@ -124,12 +113,17 @@ export default async function EventDetailPage(
                 </>
               )}
             </Badge>
-            {event.theme && <Badge variant="secondary">{event.theme}</Badge>}
           </div>
 
           <h1 className="mt-3 text-3xl font-semibold leading-tight text-balance text-gray-900 sm:text-4xl">
             {event.title}
           </h1>
+
+          {event.theme && (
+            <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#C59B27]">
+              {event.theme}
+            </p>
+          )}
 
           {event.has_information && (
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
@@ -316,7 +310,7 @@ export default async function EventDetailPage(
                   eventId={event.id}
                   isAuthenticated={Boolean(user)}
                   initialStatus={myStatus}
-                  eventOpen={eventOpen}
+                  eventStatus={event.status}
                   profilePosition={profile?.position ?? null}
                   className="w-full"
                 />
@@ -331,25 +325,63 @@ export default async function EventDetailPage(
                   </p>
                 )}
 
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="mt-3 w-full"
-                >
-                  <Link
-                    href={
-                      user
-                        ? `/reflections?event=${event.id}`
-                        : `/login?redirectTo=${encodeURIComponent(
-                            `/reflections?event=${event.id}`,
-                          )}`
-                    }
+                {event.has_reflections && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="mt-3 w-full"
                   >
-                    Reflections
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
+                    <Link
+                      href={
+                        user
+                          ? `/reflections?event=${event.id}`
+                          : `/login?redirectTo=${encodeURIComponent(
+                              `/reflections?event=${event.id}`,
+                            )}`
+                      }
+                    >
+                      Reflections
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                )}
+
+                {event.has_pledges && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="mt-3 w-full"
+                  >
+                    <Link
+                      href={
+                        user
+                          ? `/pledges/${event.id}`
+                          : `/login?redirectTo=${encodeURIComponent(
+                              `/pledges/${event.id}`,
+                            )}`
+                      }
+                    >
+                      Pledge
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                )}
+
+                {event.has_feedback && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="mt-3 w-full"
+                  >
+                    <Link href={`/feedback/${event.id}`}>
+                      Feedback
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </Card>
           </aside>

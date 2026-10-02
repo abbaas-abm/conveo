@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventById } from "@/lib/data";
 import { FeedbackFlow } from "@/components/feedback/FeedbackFlow";
@@ -12,6 +12,7 @@ export default async function FeedbackPage(
   const event = await getEventById(eventId);
 
   if (!event) notFound();
+  if (!event.has_feedback) redirect("/");
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary px-4 py-16 text-white">

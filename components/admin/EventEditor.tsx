@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +40,7 @@ const TABS = [
   "Attendance",
   "Feedback",
   "Announcements",
+  "Preferences",
 ] as const;
 
 type Tab = (typeof TABS)[number];
@@ -109,6 +111,54 @@ export function EventEditor({
     Media: "has_media",
   };
   const activeVisibilityKey = visibilityByTab[tab];
+
+  const [preferences, setPreferences] = React.useState({
+    has_pledges: event.has_pledges,
+    has_reflections: event.has_reflections,
+    has_feedback: event.has_feedback,
+  });
+  const [preferenceStatus, setPreferenceStatus] = React.useState<EventStatus>(
+    event.status,
+  );
+
+  async function updateEventStatus(next: EventStatus) {
+    const previous = preferenceStatus;
+    setPreferenceStatus(next);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("events")
+        .update({ status: next })
+        .eq("id", event.id);
+      if (error) throw error;
+      setForm((prev) => ({ ...prev, status: next }));
+      toast.success(`Event status set to ${next}.`);
+    } catch (error) {
+      setPreferenceStatus(previous);
+      toast.error(
+        error instanceof Error ? error.message : "Could not update status.",
+      );
+    }
+  }
+
+  async function togglePreference(key: keyof typeof preferences) {
+    const next = !preferences[key];
+    setPreferences((prev) => ({ ...prev, [key]: next }));
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("events")
+        .update({ [key]: next })
+        .eq("id", event.id);
+      if (error) throw error;
+      toast.success(next ? "Feature enabled." : "Feature disabled.");
+    } catch (error) {
+      setPreferences((prev) => ({ ...prev, [key]: !next }));
+      toast.error(
+        error instanceof Error ? error.message : "Could not update preference.",
+      );
+    }
+  }
 
   async function toggleVisibility(key: keyof typeof visibility) {
     const next = !visibility[key];
@@ -404,6 +454,92 @@ export function EventEditor({
           <EventAttendanceTab event={event} />
         ) : tab === "Announcements" ? (
           <EventAnnouncementsTab event={event} />
+        ) : tab === "Preferences" ? (
+          <div className="mx-auto max-w-3xl space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Event preferences
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Enable or disable attendee features for this event. When off,
+                the buttons are hidden and the pages are disabled.
+              </p>
+            </div>
+
+            <Card className="border-gray-200 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Event status
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Controls the registration button on the event page.
+                  </p>
+                </div>
+                <Select
+                  value={preferenceStatus}
+                  onValueChange={(value) =>
+                    updateEventStatus(value as EventStatus)
+                  }
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </Card>
+
+            <Card className="divide-y divide-gray-100 border-gray-200 p-0">
+              {(
+                [
+                  {
+                    key: "has_pledges" as const,
+                    label: "Pledges",
+                    description:
+                      "Allow attendees to sign a pledge and receive a certificate.",
+                  },
+                  {
+                    key: "has_reflections" as const,
+                    label: "Reflections",
+                    description: "Show the live reflections wall for this event.",
+                  },
+                  {
+                    key: "has_feedback" as const,
+                    label: "Feedback",
+                    description: "Allow attendees to submit event feedback.",
+                  },
+                ]
+              ).map((preference) => (
+                <div
+                  key={preference.key}
+                  className="flex items-center justify-between gap-4 px-5 py-4"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {preference.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {preference.description}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={preferences[preference.key]}
+                    onCheckedChange={() =>
+                      togglePreference(preference.key)
+                    }
+                    aria-label={`Toggle ${preference.label}`}
+                  />
+                </div>
+              ))}
+            </Card>
+          </div>
         ) : null}
       </div>
     </div>

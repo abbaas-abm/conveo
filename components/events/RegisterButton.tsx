@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Briefcase,
   CalendarCheck,
+  CalendarX,
   Check,
   GraduationCap,
   Loader2,
@@ -22,7 +23,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { RegistrationStatus, UserPosition } from "@/lib/types";
+import type {
+  EventStatus,
+  RegistrationStatus,
+  UserPosition,
+} from "@/lib/types";
 
 const POSITION_OPTIONS: {
   value: UserPosition;
@@ -60,7 +65,7 @@ interface RegisterButtonProps {
   eventId: string;
   isAuthenticated: boolean;
   initialStatus: RegistrationStatus | null;
-  eventOpen: boolean;
+  eventStatus: EventStatus;
   profilePosition?: UserPosition | null;
   size?: "default" | "lg";
   className?: string;
@@ -70,7 +75,7 @@ export function RegisterButton({
   eventId,
   isAuthenticated,
   initialStatus,
-  eventOpen,
+  eventStatus,
   profilePosition,
   size = "lg",
   className,
@@ -129,11 +134,19 @@ export function RegisterButton({
     }
   }
 
-  if (!eventOpen) {
+  if (eventStatus !== "OPEN") {
     return (
-      <Button variant="outline" size={size} disabled className={className}>
-        <CalendarCheck className="size-4" />
-        Registrations closed
+      <Button
+        variant="outline"
+        size={size}
+        disabled
+        className={cn(
+          className,
+          "border-red-200 bg-red-50 text-red-600",
+        )}
+      >
+        <CalendarX className="size-4" />
+        {eventStatus === "CLOSED" ? "Closed" : "Ended"}
       </Button>
     );
   }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById, getReflections } from "@/lib/data";
 import { ReflectionsBoard } from "@/components/reflections/ReflectionsBoard";
@@ -17,6 +18,8 @@ export default async function ReflectionsPage(
     eventId ? getEventById(eventId) : Promise.resolve(null),
     getReflections(eventId),
   ]);
+
+  if (event && !event.has_reflections) redirect("/");
 
   const currentUser = profile
     ? {
