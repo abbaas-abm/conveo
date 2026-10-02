@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CalendarX2, Megaphone, Search, X } from "lucide-react";
+import { CalendarX2, Search, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,16 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EventCard } from "@/components/events/EventCard";
-import { formatDate } from "@/lib/utils";
-import type {
-  EventRecord,
-  EventMode,
-  AnnouncementWithEvent,
-} from "@/lib/types";
+import type { EventRecord, EventMode } from "@/lib/types";
+
 type ModeFilter = "ALL" | EventMode;
 
 const MODE_LABELS: Record<ModeFilter, string> = {
@@ -29,13 +24,7 @@ const MODE_LABELS: Record<ModeFilter, string> = {
   ONLINE: "Online",
 };
 
-export function EventsExplorer({
-  events,
-  announcements = [],
-}: {
-  events: EventRecord[];
-  announcements?: AnnouncementWithEvent[];
-}) {
+export function EventsExplorer({ events }: { events: EventRecord[] }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -156,40 +145,6 @@ export function EventsExplorer({
 
       <section className="bg-slate-50 py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {announcements.length > 0 && (
-            <div className="mb-10">
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-primary">
-                <Megaphone className="size-4" />
-                Announcements
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {announcements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-                        From the CSD Team
-                      </span>
-                      {announcement.event?.title && (
-                        <Badge variant="secondary" className="font-normal">
-                          {announcement.event.title}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
-                      {announcement.text}
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {formatDate(announcement.created_at)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
               {filtered.length} {filtered.length === 1 ? "event" : "events"}{" "}

@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Eye, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -92,6 +93,43 @@ export function EventEditor({
   );
   const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState<FormState>(toForm(event));
+  const [visibility, setVisibility] = React.useState({
+    has_information: event.has_information,
+    has_about: event.has_about,
+    has_programme: event.has_programme,
+    has_speakers: event.has_speakers,
+    has_media: event.has_media,
+  });
+
+  const visibilityByTab: Partial<Record<Tab, keyof typeof visibility>> = {
+    Information: "has_information",
+    About: "has_about",
+    Programme: "has_programme",
+    Speakers: "has_speakers",
+    Media: "has_media",
+  };
+  const activeVisibilityKey = visibilityByTab[tab];
+
+  async function toggleVisibility(key: keyof typeof visibility) {
+    const next = !visibility[key];
+    setVisibility((prev) => ({ ...prev, [key]: next }));
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("events")
+        .update({ [key]: next })
+        .eq("id", event.id);
+      if (error) throw error;
+      toast.success(
+        next ? "Section is now visible." : "Section hidden from the event page.",
+      );
+    } catch (error) {
+      setVisibility((prev) => ({ ...prev, [key]: !next }));
+      toast.error(
+        error instanceof Error ? error.message : "Could not update visibility.",
+      );
+    }
+  }
 
   function selectTab(next: Tab) {
     setTab(next);
@@ -206,6 +244,25 @@ export function EventEditor({
           ))}
         </nav>
       </div>
+
+      {activeVisibilityKey && (
+        <div className="flex items-center justify-between gap-4 border-b border-gray-200 bg-slate-50 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <Eye className="size-4 text-gray-500" />
+            <div>
+              <p className="text-sm font-medium text-gray-900">Visibility</p>
+              <p className="text-xs text-muted-foreground">
+                {visibility[activeVisibilityKey] ? "Public" : "Private"}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={visibility[activeVisibilityKey]}
+            onCheckedChange={() => toggleVisibility(activeVisibilityKey)}
+            aria-label={`Toggle ${tab} visibility`}
+          />
+        </div>
+      )}
 
       <div className="p-4 sm:p-6">
         {tab === "Information" ? (

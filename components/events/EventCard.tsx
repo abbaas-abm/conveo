@@ -17,14 +17,16 @@ const STATUS_STYLES: Record<
 
 export function EventCard({ event }: { event: EventRecord }) {
   const status = STATUS_STYLES[event.status];
-  const image = event.cover_image_url ?? event.featured_image_url;
+  const image = event.has_media
+    ? (event.cover_image_url ?? event.featured_image_url)
+    : null;
 
   return (
     <Link
       href={`/events/${event.id}`}
       className="group block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <Card className="flex h-full flex-col overflow-hidden border-gray-200 transition-colors group-hover:border-gray-300">
+      <Card className="flex h-full flex-col gap-0 overflow-hidden border-gray-200 p-0 transition-colors group-hover:border-gray-300">
         <div className="relative h-44 w-full overflow-hidden bg-slate-100">
           {image ? (
             <Image
@@ -90,7 +92,7 @@ export function EventCard({ event }: { event: EventRecord }) {
 
 export function EventCardSkeleton() {
   return (
-    <Card className="overflow-hidden border-gray-200">
+    <Card className="gap-0 overflow-hidden border-gray-200 p-0">
       <div className="h-44 w-full animate-pulse bg-slate-100" />
       <div className="space-y-3 p-5">
         <div className="h-5 w-24 animate-pulse rounded bg-slate-100" />

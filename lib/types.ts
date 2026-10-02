@@ -48,6 +48,11 @@ export interface EventRecord {
   featured_image_key: string | null;
   cover_image_url: string | null;
   cover_image_key: string | null;
+  has_information: boolean;
+  has_about: boolean;
+  has_programme: boolean;
+  has_speakers: boolean;
+  has_media: boolean;
   created_at: string;
   updated_at: string;
 }

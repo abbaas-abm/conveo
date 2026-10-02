@@ -5,8 +5,8 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  ImageOff,
   MapPin,
-  Megaphone,
   Users,
   Video,
 } from "lucide-react";
@@ -18,6 +18,8 @@ import { RegisterButton } from "@/components/events/RegisterButton";
 import { EventCountdown } from "@/components/events/EventCountdown";
 import { ExpandableSection } from "@/components/events/ExpandableSection";
 import { EventProgramme } from "@/components/events/EventProgramme";
+import { EventAnnouncementsButton } from "@/components/events/EventAnnouncementsButton";
+import { SectionPlaceholder } from "@/components/events/SectionPlaceholder";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements } from "@/lib/data";
 import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
@@ -66,9 +68,10 @@ export default async function EventDetailPage(
 
   return (
     <div className="bg-white pb-16">
+      <EventAnnouncementsButton announcements={announcements} />
       <section className="w-full bg-slate-100">
         <div className="relative mx-auto aspect-[5/2] max-h-[560px] w-full overflow-hidden">
-          {event.cover_image_url ? (
+          {event.has_media && event.cover_image_url ? (
             <Image
               src={event.cover_image_url}
               alt={event.title}
@@ -78,8 +81,11 @@ export default async function EventDetailPage(
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-gray-300">
-              <CalendarDays className="size-10" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-200 text-gray-400">
+              <ImageOff className="size-10" />
+              <span className="text-xs font-medium uppercase tracking-wide">
+                Media coming soon
+              </span>
             </div>
           )}
         </div>
@@ -125,26 +131,30 @@ export default async function EventDetailPage(
             {event.title}
           </h1>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-            <span className="inline-flex items-center gap-2">
-              <CalendarDays className="size-4 text-primary" />
-              <span>
-                <span className="font-medium text-gray-900">Starts</span>{" "}
-                {formatDate(event.start_date)} · {formatTime(event.start_date)}
+          {event.has_information && (
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="size-4 text-primary" />
+                <span>
+                  <span className="font-medium text-gray-900">Starts</span>{" "}
+                  {formatDate(event.start_date)} ·{" "}
+                  {formatTime(event.start_date)}
+                </span>
               </span>
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <CalendarDays className="size-4 text-primary" />
-              <span>
-                <span className="font-medium text-gray-900">Ends</span>{" "}
-                {formatDate(event.end_date)} · {formatTime(event.end_date)}
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="size-4 text-primary" />
+                <span>
+                  <span className="font-medium text-gray-900">Ends</span>{" "}
+                  {formatDate(event.end_date)} · {formatTime(event.end_date)}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6 lg:order-1">
+            {event.has_about ? (
             <Card className="border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900">
                 About this event
@@ -182,7 +192,11 @@ export default async function EventDetailPage(
                 </p>
               )}
             </Card>
+            ) : (
+              <SectionPlaceholder title="About this event" />
+            )}
 
+            {event.has_programme ? (
             <Card className="border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900">
                 Programme &amp; agenda
@@ -198,8 +212,13 @@ export default async function EventDetailPage(
                 />
               )}
             </Card>
+            ) : (
+              <SectionPlaceholder title="Programme &amp; agenda" />
+            )}
 
-            {speakers.length > 0 && (
+            {!event.has_speakers ? (
+              <SectionPlaceholder title="Speakers &amp; facilitators" />
+            ) : speakers.length > 0 ? (
               <Card className="border-gray-200 p-6 sm:p-8">
                 <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
                   <Users className="size-5 text-gray-400" />
@@ -244,42 +263,53 @@ export default async function EventDetailPage(
                   ))}
                 </div>
               </Card>
-            )}
+            ) : null}
           </div>
 
           <aside className="order-first space-y-6 lg:order-2 lg:sticky lg:top-20 lg:h-fit">
-            <EventCountdown initialSeconds={secondsUntil(event.start_date)} />
+            {event.has_information && (
+              <EventCountdown
+                initialSeconds={secondsUntil(event.start_date)}
+              />
+            )}
             <Card className="border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900">
                 Event details
               </h2>
-              <div className="mt-5 space-y-4 text-sm">
-                <DetailRow icon={CalendarDays} label="Starts">
-                  {formatDate(event.start_date, {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}{" "}
-                  · {formatTime(event.start_date)}
-                </DetailRow>
-                <Separator />
-                <DetailRow icon={CalendarDays} label="Ends">
-                  {formatDate(event.end_date, {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}{" "}
-                  · {formatTime(event.end_date)}
-                </DetailRow>
-                <Separator />
-                <DetailRow icon={MapPin} label="Venue">
-                  {event.mode === "ONLINE"
-                    ? "Online (link shared on registration)"
-                    : (event.venue ?? "Wits Campus")}
-                </DetailRow>
-              </div>
+              {event.has_information ? (
+                <div className="mt-5 space-y-4 text-sm">
+                  <DetailRow icon={CalendarDays} label="Starts">
+                    {formatDate(event.start_date, {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    · {formatTime(event.start_date)}
+                  </DetailRow>
+                  <Separator />
+                  <DetailRow icon={CalendarDays} label="Ends">
+                    {formatDate(event.end_date, {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    · {formatTime(event.end_date)}
+                  </DetailRow>
+                  <Separator />
+                  <DetailRow icon={MapPin} label="Venue">
+                    {event.mode === "ONLINE"
+                      ? "Online (link shared on registration)"
+                      : (event.venue ?? "Wits Campus")}
+                  </DetailRow>
+                </div>
+              ) : (
+                <p className="mt-5 text-sm leading-relaxed text-gray-500">
+                  The event organizers are still confirming these details.
+                  Please check back soon.
+                </p>
+              )}
 
               <div className="mt-6">
                 <RegisterButton
@@ -322,34 +352,6 @@ export default async function EventDetailPage(
                 </Button>
               </div>
             </Card>
-
-            {announcements.length > 0 && (
-              <Card className="border-gray-200 p-6">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <Megaphone className="size-5 text-primary" />
-                  Announcements
-                </h2>
-                <div className="mt-4 space-y-4">
-                  {announcements.map((announcement) => (
-                    <div
-                      key={announcement.id}
-                      className="rounded-lg border border-gray-200 bg-slate-50 p-4"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                        From the CSD Team
-                      </p>
-                      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
-                        {announcement.text}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {formatDate(announcement.created_at)} ·{" "}
-                        {formatTime(announcement.created_at)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
           </aside>
         </div>
       </div>

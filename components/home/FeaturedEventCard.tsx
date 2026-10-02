@@ -6,7 +6,9 @@ import { formatDate, formatTime } from "@/lib/utils";
 import type { EventRecord } from "@/lib/types";
 
 export function FeaturedEventCard({ event }: { event: EventRecord }) {
-  const image = event.featured_image_url ?? event.cover_image_url;
+  const image = event.has_media
+    ? (event.featured_image_url ?? event.cover_image_url)
+    : null;
   const isOpen = event.status === "OPEN";
 
   return (

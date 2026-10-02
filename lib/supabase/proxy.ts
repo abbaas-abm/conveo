@@ -29,9 +29,19 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Invalid/expired refresh token (e.g. stale cookie). Clear the auth
+    // cookies so the client stops retrying with a dead token.
+    request.cookies
+      .getAll()
+      .filter((cookie) => cookie.name.startsWith("sb-"))
+      .forEach((cookie) => response.cookies.delete(cookie.name));
+    user = null;
+  }
 
   const path = request.nextUrl.pathname;
   const isAdminArea = path === "/admin" || path.startsWith("/admin/");
