@@ -16,11 +16,12 @@ import { createClient } from "@/lib/supabase/client";
 import { initials } from "@/lib/utils";
 import type { EventRecord, UserPosition } from "@/lib/types";
 
-type Phase = "scanning" | "loading" | "found" | "no-rsvp" | "checked-in";
+type Phase = "scanning" | "loading" | "found" | "no-registration" | "checked-in";
 
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
   STAFF: "Staff",
+  GUEST: "Guest",
   GUEST_SPEAKER: "Guest Speaker",
 };
 
@@ -64,44 +65,44 @@ export function QrScanner({
       try {
         const userId = raw.trim();
         const supabase = createClient();
-        const [{ data: profile }, { data: rsvp }] = await Promise.all([
+        const [{ data: profile }, { data: registration }] = await Promise.all([
           supabase
             .from("profiles")
             .select("first_name,last_name")
             .eq("id", userId)
             .maybeSingle(),
           supabase
-            .from("rsvps")
+            .from("registrations")
             .select("position, status")
             .eq("event_id", event.id)
             .eq("attendee_id", userId)
             .maybeSingle(),
         ]);
 
-        if (!profile || !rsvp || rsvp.status !== "CONFIRMED") {
+        if (!profile || !registration || registration.status !== "CONFIRMED") {
           setAttendee(
             profile
               ? {
                   id: userId,
                   name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim(),
-                  position: (rsvp?.position as UserPosition) ?? null,
+                  position: (registration?.position as UserPosition) ?? null,
                 }
               : null,
           );
-          setPhase("no-rsvp");
+          setPhase("no-registration");
           return;
         }
 
         setAttendee({
           id: userId,
           name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim(),
-          position: rsvp.position as UserPosition,
+          position: registration.position as UserPosition,
         });
         setPhase("found");
       } catch (err) {
         console.error(err);
         setError("Could not read that code. Please try again.");
-        setPhase("no-rsvp");
+        setPhase("no-registration");
       }
     },
     [event.id],
@@ -283,7 +284,7 @@ export function QrScanner({
             </div>
           )}
 
-          {phase === "no-rsvp" && (
+          {phase === "no-registration" && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-red-50 text-destructive">
@@ -291,7 +292,7 @@ export function QrScanner({
                 </span>
                 <div>
                   <p className="text-base font-semibold text-gray-900">
-                    No RSVP found
+                    No registration found
                   </p>
                   <p className="text-sm text-muted-foreground">
                     This attendee is not registered for this event.

@@ -10,25 +10,25 @@ export function HeroFallback() {
         <CalendarDays className="size-5" />
       </div>
       <h3 className="mt-4 text-lg font-semibold text-gray-900">
-        Student leadership initiatives
+        Student development at Wits
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-gray-600">
-        The DLU delivers leadership workshops, critical engagement sessions,
-        entrepreneurship programmes and campus activations throughout the
-        academic year.
+        The CSD delivers leadership, civic engagement, governance and
+        persistence programmes across the university throughout the academic
+        year.
       </p>
       <ul className="mt-4 space-y-2 text-sm text-gray-600">
         <li className="flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-primary" />
-          Personal &amp; leadership development
+          Leadership &amp; experiential learning
         </li>
         <li className="flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-primary" />
-          Experiential learning &amp; critical engagement
+          Community outreach &amp; active citizenship
         </li>
         <li className="flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-primary" />
-          Entrepreneurship &amp; innovation
+          Governance &amp; student transitions
         </li>
       </ul>
       <Button asChild variant="outline" className="mt-5 w-full">

@@ -1,6 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { deliverRsvpEmail } from "@/lib/email/rsvp";
+import { deliverRegistrationEmail } from "@/lib/email/registration";
 import type { UserPosition } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -35,15 +35,15 @@ export async function POST(request: Request) {
   }
 
   const { data: existing } = await supabase
-    .from("rsvps")
+    .from("registrations")
     .select("status")
     .eq("attendee_id", user.id)
     .eq("event_id", eventId)
     .maybeSingle();
   const alreadyConfirmed = existing?.status === "CONFIRMED";
 
-  const { data: rsvpRow, error } = await supabase
-    .from("rsvps")
+  const { data: registrationRow, error } = await supabase
+    .from("registrations")
     .upsert(
       {
         event_id: eventId,
@@ -56,17 +56,17 @@ export async function POST(request: Request) {
     .select("id")
     .single();
 
-  if (error || !rsvpRow) {
+  if (error || !registrationRow) {
     return NextResponse.json(
-      { error: error?.message ?? "Could not create RSVP." },
+      { error: error?.message ?? "Could not create registration." },
       { status: 500 },
     );
   }
 
-  const rsvpId = rsvpRow.id as string;
+  const registrationId = registrationRow.id as string;
 
   // Send the confirmation email + PDF badge in the background, only for a
-  // newly confirmed RSVP.
+  // newly confirmed registration.
   if (!alreadyConfirmed) {
     const [{ data: profile }, { data: event }] = await Promise.all([
       supabase
@@ -83,9 +83,9 @@ export async function POST(request: Request) {
 
     if (profile?.email && event) {
       after(() =>
-        deliverRsvpEmail({
+        deliverRegistrationEmail({
           supabase,
-          rsvpId,
+          registrationId,
           data: {
             attendeeId: user.id,
             eventId,
@@ -104,5 +104,5 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, rsvpId });
+  return NextResponse.json({ ok: true, registrationId });
 }

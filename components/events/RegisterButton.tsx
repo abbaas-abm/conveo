@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Loader2,
   Mic,
+  UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { RsvpStatus, UserPosition } from "@/lib/types";
+import type { RegistrationStatus, UserPosition } from "@/lib/types";
 
 const POSITION_OPTIONS: {
   value: UserPosition;
@@ -42,6 +43,12 @@ const POSITION_OPTIONS: {
     icon: Briefcase,
   },
   {
+    value: "GUEST",
+    label: "Guest",
+    description: "External or non-university guest",
+    icon: UserRound,
+  },
+  {
     value: "GUEST_SPEAKER",
     label: "Guest Speaker",
     description: "Invited speaker for this event",
@@ -49,17 +56,17 @@ const POSITION_OPTIONS: {
   },
 ];
 
-interface RsvpButtonProps {
+interface RegisterButtonProps {
   eventId: string;
   isAuthenticated: boolean;
-  initialStatus: RsvpStatus | null;
+  initialStatus: RegistrationStatus | null;
   eventOpen: boolean;
   profilePosition?: UserPosition | null;
   size?: "default" | "lg";
   className?: string;
 }
 
-export function RsvpButton({
+export function RegisterButton({
   eventId,
   isAuthenticated,
   initialStatus,
@@ -67,9 +74,9 @@ export function RsvpButton({
   profilePosition,
   size = "lg",
   className,
-}: RsvpButtonProps) {
+}: RegisterButtonProps) {
   const router = useRouter();
-  const [status, setStatus] = React.useState<RsvpStatus | null>(initialStatus);
+  const [status, setStatus] = React.useState<RegistrationStatus | null>(initialStatus);
   const [pending, setPending] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [position, setPosition] = React.useState<UserPosition | "">(
@@ -90,14 +97,14 @@ export function RsvpButton({
     setDialogOpen(true);
   }
 
-  async function confirmRsvp() {
+  async function confirmRegistration() {
     if (!position) {
       toast.error("Please choose how you are attending.");
       return;
     }
     setPending(true);
     try {
-      const response = await fetch("/api/rsvp", {
+      const response = await fetch("/api/registration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eventId, position }),
@@ -106,7 +113,7 @@ export function RsvpButton({
         const data = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(data.error ?? "Could not confirm RSVP.");
+        throw new Error(data.error ?? "Could not confirm your registration.");
       }
       setStatus("CONFIRMED");
       setDialogOpen(false);
@@ -115,7 +122,7 @@ export function RsvpButton({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Could not confirm RSVP.",
+        error instanceof Error ? error.message : "Could not confirm your registration.",
       );
     } finally {
       setPending(false);
@@ -151,7 +158,7 @@ export function RsvpButton({
         ) : (
           <CalendarCheck className="size-4" />
         )}
-        {pending ? "Processing..." : confirmed ? "Confirmed" : "RSVP now"}
+        {pending ? "Processing..." : confirmed ? "Confirmed" : "Register now"}
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -225,7 +232,7 @@ export function RsvpButton({
             </Button>
             <Button
               type="button"
-              onClick={confirmRsvp}
+              onClick={confirmRegistration}
               disabled={pending || !position}
             >
               {pending ? (
@@ -233,7 +240,7 @@ export function RsvpButton({
               ) : (
                 <CalendarCheck className="size-4" />
               )}
-              {pending ? "Confirming..." : "Confirm RSVP"}
+              {pending ? "Confirming..." : "Confirm registration"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -132,7 +132,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
         ? await resolveDestination(data.user.id, data.user.email)
         : "/onboarding";
 
-      toast.success("Verified. Welcome to the DLU.");
+      toast.success("Verified. Welcome to the CSD.");
       router.refresh();
       router.push(destination);
     } catch (error) {
@@ -176,12 +176,12 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
         />
         <div>
           <h2 className="text-2xl font-semibold leading-tight text-white">
-            Development &amp; Leadership Unit
+            Centre for Student Development
           </h2>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/80">
-            Unlocking personal, social and professional growth for Wits
-            students through transformative leadership, innovation and
-            experiential learning.
+            Integrating leadership, civic engagement, governance and
+            persistence support to create empowered, well-rounded Wits
+            graduates.
           </p>
         </div>
         <p className="text-xs text-white/60">

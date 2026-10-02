@@ -11,22 +11,22 @@ const DETAILS = [
     icon: MapPin,
     label: "Office Location",
     lines: [
-      "First Floor, Student Union Building (Matrix)",
-      "East Campus, 1 Jan Smuts Avenue",
+      "Division of Student Affairs (Student Center)",
+      "East Campus, University of the Witwatersrand",
       "Braamfontein, Johannesburg",
     ],
   },
   {
     icon: Mail,
     label: "Email",
-    lines: ["Programmes.DLU@wits.ac.za", "dlu@wits.ac.za"],
-    href: "mailto:Programmes.DLU@wits.ac.za",
+    lines: ["studentaffairs@wits.ac.za"],
+    href: "mailto:studentaffairs@wits.ac.za",
   },
   {
     icon: Phone,
-    label: "Reception Phone",
-    lines: ["+27 (0)11 717 9234"],
-    href: "tel:+27117179234",
+    label: "Office Contact",
+    lines: ["+27 (0)11 717 9100", "+27 (0)11 717 9234"],
+    href: "tel:+27117179100",
   },
   {
     icon: Clock,
@@ -40,7 +40,7 @@ export default function ContactPage() {
     <>
       <PageHero
         eyebrow="Contact & Location"
-        title="Get in touch with the DLU"
+        title="Get in touch with the CSD"
         subtitle="Have a question about our programmes, partnerships or events? Our team is here to help."
       />
 
@@ -86,7 +86,7 @@ export default function ContactPage() {
             <Card className="overflow-hidden border-gray-200 p-0">
               <div className="relative h-52 w-full bg-slate-100">
                 <iframe
-                  title="DLU office location"
+                  title="CSD office location"
                   className="h-full w-full"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -107,7 +107,7 @@ export default function ContactPage() {
                 Send us a message
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Complete the form below and the DLU programme team will respond
+                Complete the form below and the CSD team will respond
                 within two business days.
               </p>
               <div className="mt-7">

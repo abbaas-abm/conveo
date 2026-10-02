@@ -8,7 +8,7 @@ import type {
   ProgramBlock,
   Speaker,
   Profile,
-  Rsvp,
+  Registration,
   Feedback,
 } from "@/lib/types";
 
@@ -97,21 +97,21 @@ export async function getEventProgram(
   }
 }
 
-export interface RsvpWithEvent extends Rsvp {
+export interface RegistrationWithEvent extends Registration {
   event: EventRecord;
 }
 
-export async function getUserRsvps(userId: string): Promise<RsvpWithEvent[]> {
+export async function getUserRegistrations(userId: string): Promise<RegistrationWithEvent[]> {
   const supabase = await createClient();
   if (!supabase) return [];
   try {
     const { data, error } = await supabase
-      .from("rsvps")
+      .from("registrations")
       .select("*, event:events(*)")
       .eq("attendee_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as RsvpWithEvent[];
+    return (data ?? []) as unknown as RegistrationWithEvent[];
   } catch {
     return [];
   }

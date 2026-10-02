@@ -41,7 +41,7 @@ export default async function OnboardingPage() {
             Let&apos;s set up your profile
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            A few quick details so we can tailor your DLU experience.
+            A few quick details so we can tailor your CSD experience.
           </p>
         </div>
         <OnboardingFlow profile={activeProfile} />

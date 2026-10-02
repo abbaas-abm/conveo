@@ -27,13 +27,13 @@ export function Hero() {
         />
 
         <h1 className="mt-8 text-3xl font-semibold leading-tight text-balance text-white sm:text-5xl">
-          Empowering Wits change makers &amp; future leaders
+          Nurturing purpose, leadership &amp; student success at Wits
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg">
-          Unlocking personal, social and professional growth through
-          transformative leadership, innovation and experiential learning for
-          students across every Wits faculty.
+          The Centre for Student Development integrates leadership, civic
+          engagement, governance and persistence support to create empowered,
+          well-rounded graduates.
         </p>
 
         <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
@@ -43,7 +43,7 @@ export function Hero() {
             className="bg-white text-primary hover:bg-slate-100"
           >
             <Link href="/events">
-              Explore events &amp; RSVP
+              Explore events &amp; Register now
               <ArrowRight className="size-4" />
             </Link>
           </Button>
@@ -53,7 +53,7 @@ export function Hero() {
             variant="outline"
             className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white"
           >
-            <Link href="/about">Learn about our programmes</Link>
+            <Link href="/about">Discover our 4 core units</Link>
           </Button>
         </div>
       </div>

@@ -23,7 +23,7 @@ import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { AdminSpeakers } from "@/components/admin/AdminSpeakers";
 import { EventMediaTab } from "@/components/admin/EventMediaTab";
 import { EventProgramTab } from "@/components/admin/EventProgramTab";
-import { EventRsvpsTab } from "@/components/admin/EventRsvpsTab";
+import { EventRegistrationsTab } from "@/components/admin/EventRegistrationsTab";
 import { EventFeedbackTab } from "@/components/admin/EventFeedbackTab";
 import { EventAttendanceTab } from "@/components/admin/EventAttendanceTab";
 import { EventAnnouncementsTab } from "@/components/admin/EventAnnouncementsTab";
@@ -34,7 +34,7 @@ const TABS = [
   "Programme",
   "Speakers",
   "Media",
-  "RSVPs",
+  "Registrations",
   "Attendance",
   "Feedback",
   "Announcements",
@@ -339,8 +339,8 @@ export function EventEditor({
           <EventMediaTab event={event} />
         ) : tab === "Programme" ? (
           <EventProgramTab event={event} />
-        ) : tab === "RSVPs" ? (
-          <EventRsvpsTab event={event} />
+        ) : tab === "Registrations" ? (
+          <EventRegistrationsTab event={event} />
         ) : tab === "Feedback" ? (
           <EventFeedbackTab event={event} />
         ) : tab === "Attendance" ? (

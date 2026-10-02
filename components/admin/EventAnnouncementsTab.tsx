@@ -103,7 +103,7 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Posted announcements appear on the events page and on this event&apos;s
-          page, signed “From the DLU Team”.
+          page, signed “From the CSD Team”.
         </p>
         <Textarea
           value={text}
@@ -145,7 +145,7 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                    From the DLU Team
+                    From the CSD Team
                   </p>
                   <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
                     {item.text}

@@ -9,7 +9,7 @@ export default function AdminTagsPage() {
     <div className="p-4 sm:p-6">
       <AdminPlaceholder
         title="Tags"
-        description="Create and manage tags used to categorise DLU events and attendees."
+        description="Create and manage tags used to categorise CSD events and attendees."
         icon={<Tag className="size-5" />}
       />
     </div>

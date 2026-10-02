@@ -46,10 +46,11 @@ const CHART_COLORS = ["#003366", "#d9b45b", "#4b7bb5", "#b08a3e", "#7c93b3", "#e
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
   STAFF: "Staff",
+  GUEST: "Guest",
   GUEST_SPEAKER: "Guest Speaker",
 };
 
-interface RsvpRow {
+interface RegistrationRow {
   id: string;
   attendee_id: string;
   status: "CONFIRMED" | "CANCELLED";
@@ -74,8 +75,8 @@ function countBy<T extends string>(values: T[]) {
   }, {});
 }
 
-export function EventRsvpsTab({ event }: { event: { id: string } }) {
-  const [rows, setRows] = React.useState<RsvpRow[]>([]);
+export function EventRegistrationsTab({ event }: { event: { id: string } }) {
+  const [rows, setRows] = React.useState<RegistrationRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [faculty, setFaculty] = React.useState("ALL");
@@ -86,7 +87,7 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
     (async () => {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from("rsvps")
+        .from("registrations")
         .select(
           "id, attendee_id, status, position, attendee_tag_url, created_at, attendee:profiles(*)",
         )
@@ -98,7 +99,7 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
         setLoading(false);
         return;
       }
-      setRows((data ?? []) as unknown as RsvpRow[]);
+      setRows((data ?? []) as unknown as RegistrationRow[]);
       setLoading(false);
     })();
     return () => {
@@ -195,10 +196,10 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
       <Card className="mx-auto flex max-w-2xl flex-col items-center justify-center border-dashed border-gray-300 bg-white px-6 py-16 text-center">
         <Users className="size-6 text-gray-400" />
         <h3 className="mt-3 text-base font-semibold text-gray-900">
-          No RSVPs yet
+          No registrations yet
         </h3>
         <p className="mt-1 text-sm text-gray-600">
-          Attendee registrations will appear here once people RSVP.
+          Attendee registrations will appear here once people register.
         </p>
       </Card>
     );
@@ -211,7 +212,7 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Summary statistics */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total RSVPs" value={total} />
+        <StatCard label="Total registrations" value={total} />
         <StatCard label="Male" value={maleCount} variant="male" />
         <StatCard label="Female" value={femaleCount} variant="female" />
       </div>
@@ -237,7 +238,7 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
         <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="size-4" />
-            {filtered.length} {filtered.length === 1 ? "RSVP" : "RSVPs"}
+            {filtered.length} {filtered.length === 1 ? "registration" : "registrations"}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">
@@ -272,7 +273,7 @@ export function EventRsvpsTab({ event }: { event: { id: string } }) {
         ) : (
           <div className="divide-y divide-gray-100">
             {pageRows.map((row) => (
-              <RsvpListRow key={row.id} row={row} />
+              <RegistrationListRow key={row.id} row={row} />
             ))}
           </div>
         )}
@@ -437,7 +438,7 @@ function VBar({ data }: { data: { name: string; value: number }[] }) {
   );
 }
 
-function RsvpListRow({ row }: { row: RsvpRow }) {
+function RegistrationListRow({ row }: { row: RegistrationRow }) {
   const name =
     [row.attendee?.first_name, row.attendee?.last_name]
       .filter(Boolean)
@@ -474,7 +475,7 @@ function RsvpListRow({ row }: { row: RsvpRow }) {
         </p>
         <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
           <CalendarCheck className="size-3.5" />
-          RSVP’d {formatDate(row.created_at)} · {formatTime(row.created_at)}
+          Registered {formatDate(row.created_at)} · {formatTime(row.created_at)}
         </p>
       </div>
 

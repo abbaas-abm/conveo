@@ -6,12 +6,13 @@ import type { UserPosition } from "@/lib/types";
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
   STAFF: "Staff",
+  GUEST: "Guest",
   GUEST_SPEAKER: "Guest Speaker",
 };
 
 const BUCKET = "event_images";
 
-export interface RsvpEmailData {
+export interface RegistrationEmailData {
   attendeeId: string;
   eventId: string;
   email: string;
@@ -37,14 +38,14 @@ function formatDateTime(iso: string) {
   }).format(new Date(iso));
 }
 
-function renderEmailHtml(data: RsvpEmailData, dateText: string, position: string) {
+function renderEmailHtml(data: RegistrationEmailData, dateText: string, position: string) {
   const fullName = `${data.firstName} ${data.lastName}`.trim() || "Attendee";
   return `
   <div style="font-family:Arial,Helvetica,sans-serif;background:#f8fafc;padding:24px;">
     <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
       <div style="background:#003366;padding:28px 24px;text-align:center;">
-        <p style="margin:0;color:#d9b45b;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Development &amp; Leadership Unit</p>
-        <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;">RSVP Confirmed</h1>
+        <p style="margin:0;color:#d9b45b;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Centre for Student Development</p>
+        <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;">Registration Confirmed</h1>
       </div>
       <div style="padding:28px 24px;color:#1f2937;">
         <p style="margin:0 0 16px;font-size:16px;">Hi ${fullName},</p>
@@ -59,24 +60,24 @@ function renderEmailHtml(data: RsvpEmailData, dateText: string, position: string
         </div>
         <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#4b5563;">
           Please present your badge (printed or on your phone) at the door for fast check-in.
-          You can also download it anytime from your DLU dashboard.
+          You can also download it anytime from your CSD dashboard.
         </p>
       </div>
       <div style="border-top:3px solid #d9b45b;background:#003366;padding:16px 24px;text-align:center;">
-        <p style="margin:0;color:#ffffff;font-size:12px;">University of the Witwatersrand · DLU</p>
+        <p style="margin:0;color:#ffffff;font-size:12px;">University of the Witwatersrand · CSD</p>
       </div>
     </div>
   </div>`;
 }
 
-export async function deliverRsvpEmail({
+export async function deliverRegistrationEmail({
   supabase,
-  rsvpId,
+  registrationId,
   data,
 }: {
   supabase: SupabaseClient;
-  rsvpId: string;
-  data: RsvpEmailData;
+  registrationId: string;
+  data: RegistrationEmailData;
 }) {
   try {
     const key = process.env.PLUNK_SECRET_KEY;
@@ -109,9 +110,9 @@ export async function deliverRsvpEmail({
       },
       body: JSON.stringify({
         to: data.email,
-        subject: `RSVP CONFIRMED: ${data.eventTitle}`,
+        subject: `REGISTRATION CONFIRMED: ${data.eventTitle}`,
         body: renderEmailHtml(data, dateText, position),
-        from: { name: data.eventTitle, email: "rsvp@conveo.co.za" },
+        from: { name: "Wits CSD", email: "registrations@witscsd.co.za" },
         attachments: [
           {
             filename,
@@ -127,7 +128,7 @@ export async function deliverRsvpEmail({
       throw new Error(`Plunk error ${response.status}: ${text}`);
     }
 
-    console.log(`RSVP confirmation email sent to ${data.email}`);
+    console.log(`Registration confirmation email sent to ${data.email}`);
 
     // Store the badge so it can be re-downloaded from the dashboard.
     const path = `attendee-tags/${data.eventId}/${data.attendeeId}-${crypto.randomUUID()}.pdf`;
@@ -141,13 +142,13 @@ export async function deliverRsvpEmail({
       .getPublicUrl(path);
 
     const { error: updateError } = await supabase
-      .from("rsvps")
+      .from("registrations")
       .update({ attendee_tag_url: publicUrl.publicUrl })
-      .eq("id", rsvpId);
+      .eq("id", registrationId);
     if (updateError) throw updateError;
 
     console.log(`Attendee tag stored at ${publicUrl.publicUrl}`);
   } catch (error) {
-    console.error("RSVP confirmation email failed:", error);
+    console.error("Registration confirmation email failed:", error);
   }
 }

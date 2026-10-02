@@ -31,7 +31,7 @@ export function isWitsEmail(email: string) {
 
 export function initials(first?: string | null, last?: string | null) {
   return (
-    `${(first ?? "").charAt(0)}${(last ?? "").charAt(0)}`.toUpperCase() || "DLU"
+    `${(first ?? "").charAt(0)}${(last ?? "").charAt(0)}`.toUpperCase() || "CSD"
   );
 }
 

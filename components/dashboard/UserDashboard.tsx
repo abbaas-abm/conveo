@@ -9,14 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfilePanel } from "./ProfilePanel";
 import { MyEventsPanel } from "./MyEventsPanel";
 import type { Profile } from "@/lib/types";
-import type { RsvpWithEvent } from "@/lib/data";
+import type { RegistrationWithEvent } from "@/lib/data";
 
 export function UserDashboard({
   profile,
-  rsvps,
+  registrations,
 }: {
   profile: Profile;
-  rsvps: RsvpWithEvent[];
+  registrations: RegistrationWithEvent[];
 }) {
   const [tab, setTab] = React.useState("profile");
 
@@ -31,7 +31,7 @@ export function UserDashboard({
           <Button asChild>
             <Link href="/volunteer">
               <HeartHandshake className="size-4" />
-              Volunteer Dashboard
+              Volunteer Portal
             </Link>
           </Button>
         </div>
@@ -53,7 +53,7 @@ export function UserDashboard({
           <ProfilePanel profile={profile} />
         </TabsContent>
         <TabsContent value="events">
-          <MyEventsPanel rsvps={rsvps} />
+          <MyEventsPanel registrations={registrations} />
         </TabsContent>
       </Tabs>
     </motion.div>

@@ -42,7 +42,7 @@ export function Navbar({ profile }: { profile: Profile | null }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3" aria-label="DLU home">
+        <Link href="/" className="flex items-center" aria-label="CSD home">
           <Image
             src="/wits-logo-white.png"
             alt="University of the Witwatersrand"
@@ -51,13 +51,6 @@ export function Navbar({ profile }: { profile: Profile | null }) {
             priority
             className="h-9 w-auto"
           />
-          <span className="h-8 w-px bg-gray-200" aria-hidden />
-          <span className="text-sm font-semibold leading-tight text-primary">
-            DLU
-            <span className="block text-[11px] font-normal text-gray-500">
-              Development &amp; Leadership
-            </span>
-          </span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

@@ -45,6 +45,7 @@ const CHART_COLORS = ["#003366", "#d9b45b", "#4b7bb5", "#b08a3e", "#7c93b3", "#e
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
   STAFF: "Staff",
+  GUEST: "Guest",
   GUEST_SPEAKER: "Guest Speaker",
 };
 
@@ -87,7 +88,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
     let active = true;
     (async () => {
       const supabase = createClient();
-      const [attendanceRes, rsvpRes] = await Promise.all([
+      const [attendanceRes, registrationRes] = await Promise.all([
         supabase
           .from("attendance")
           .select(
@@ -96,7 +97,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
           .eq("event_id", event.id)
           .order("created_at", { ascending: false }),
         supabase
-          .from("rsvps")
+          .from("registrations")
           .select("attendee_id, position")
           .eq("event_id", event.id),
       ]);
@@ -107,7 +108,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
         return;
       }
       const map: Record<string, UserPosition> = {};
-      for (const r of (rsvpRes.data ?? []) as Array<{
+      for (const r of (registrationRes.data ?? []) as Array<{
         attendee_id: string;
         position: UserPosition | null;
       }>) {

@@ -1,10 +1,10 @@
-export type UserPosition = "STUDENT" | "STAFF" | "GUEST_SPEAKER";
+export type UserPosition = "STUDENT" | "STAFF" | "GUEST" | "GUEST_SPEAKER";
 export type UserRole = "user" | "volunteer" | "admin";
 export type OnboardingStep = "PERSONAL_DETAILS" | "ACADEMIC_DETAILS" | "DONE";
 
 export type EventMode = "ONLINE" | "IN_PERSON";
 export type EventStatus = "OPEN" | "CLOSED" | "ENDED";
-export type RsvpStatus = "CONFIRMED" | "CANCELLED";
+export type RegistrationStatus = "CONFIRMED" | "CANCELLED";
 export type ProgramBlockType =
   | "KEYNOTE"
   | "PANEL_DISCUSSION"
@@ -110,12 +110,12 @@ export interface ReflectionWithUser extends Reflection {
   user: { first_name: string | null; last_name: string | null } | null;
 }
 
-export interface Rsvp {
+export interface Registration {
   id: string;
   attendee_id: string;
   event_id: string;
   position: UserPosition | null;
-  status: RsvpStatus;
+  status: RegistrationStatus;
   attendee_tag_url: string | null;
   created_at: string;
   updated_at: string;

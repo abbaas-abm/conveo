@@ -19,11 +19,11 @@ const robotoMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "DLU | Development & Leadership Unit — Wits University",
-    template: "%s | DLU Wits",
+    default: "CSD | Centre for Student Development — Wits University",
+    template: "%s | CSD Wits",
   },
   description:
-    "Empowering Wits change makers and future leaders through transformative leadership, innovation and experiential learning.",
+    "The Centre for Student Development integrates leadership, civic engagement, governance and persistence support to create empowered, well-rounded Wits graduates.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

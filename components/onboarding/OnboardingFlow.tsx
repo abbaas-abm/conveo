@@ -81,10 +81,14 @@ function academicQuestions(position: UserPosition | ""): Question[] {
   const base: Question[] = [
     {
       key: "position",
-      question: "Are you a student or a staff member?",
+      question: "How are you joining us?",
       type: "position",
     },
   ];
+
+  if (position === "GUEST" || position === "GUEST_SPEAKER") {
+    return base;
+  }
 
   if (position === "STAFF") {
     return [
@@ -153,7 +157,7 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
 
   const totalEstimate =
     PERSONAL_QUESTIONS.length +
-    academicQuestions(values.position === "STUDENT" ? "STUDENT" : "STAFF").length;
+    academicQuestions(values.position || "STUDENT").length;
 
   const completed =
     phase === "PERSONAL" ? index : PERSONAL_QUESTIONS.length + index;
@@ -213,12 +217,14 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
   async function saveAcademic() {
     const supabase = createClient();
     const isStudent = values.position === "STUDENT";
+    const isGuest =
+      values.position === "GUEST" || values.position === "GUEST_SPEAKER";
     const { error } = await supabase.from("profiles").upsert(
       {
         id: profile.id,
         email: profile.email,
         position: values.position || null,
-        person_number: values.person_number.trim() || null,
+        person_number: isGuest ? null : values.person_number.trim() || null,
         faculty: isStudent ? values.faculty || null : null,
         course_of_study: isStudent
           ? values.course_of_study.trim() || null
@@ -248,7 +254,7 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
         toast.success("Great. Now let's finish your academic details.");
       } else {
         await saveAcademic();
-        toast.success("Your profile is complete. Welcome to the DLU.");
+        toast.success("Your profile is complete. Welcome to the CSD.");
         router.refresh();
         router.push(profile.role === "admin" ? "/admin" : "/user");
       }
@@ -318,14 +324,40 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
 
           <div onKeyDown={handleKeyDown}>
             {question?.type === "position" ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(["STUDENT", "STAFF"] as UserPosition[]).map((option) => {
-                  const active = values.position === option;
+              <div className="grid gap-3">
+                {(
+                  [
+                    {
+                      value: "STUDENT",
+                      badge: "S",
+                      label: "Student",
+                      description: "Currently enrolled at Wits",
+                    },
+                    {
+                      value: "STAFF",
+                      badge: "F",
+                      label: "Staff",
+                      description: "Wits employee or academic",
+                    },
+                    {
+                      value: "GUEST",
+                      badge: "G",
+                      label: "Guest",
+                      description: "External or non-university guest",
+                    },
+                  ] as {
+                    value: UserPosition;
+                    badge: string;
+                    label: string;
+                    description: string;
+                  }[]
+                ).map((option) => {
+                  const active = values.position === option.value;
                   return (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
-                      onClick={() => setValue("position", option)}
+                      onClick={() => setValue("position", option.value)}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-4 text-left transition-colors",
                         active
@@ -335,26 +367,24 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
                     >
                       <span
                         className={cn(
-                          "flex size-9 items-center justify-center rounded-md text-sm font-medium",
+                          "flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-medium",
                           active
                             ? "bg-primary text-white"
                             : "bg-slate-100 text-gray-600",
                         )}
                       >
-                        {option === "STUDENT" ? "S" : "F"}
+                        {option.badge}
                       </span>
-                      <span>
+                      <span className="flex-1">
                         <span className="block font-medium text-gray-900">
-                          {option === "STUDENT" ? "Student" : "Staff"}
+                          {option.label}
                         </span>
                         <span className="block text-xs text-gray-500">
-                          {option === "STUDENT"
-                            ? "Currently enrolled at Wits"
-                            : "Wits employee or academic"}
+                          {option.description}
                         </span>
                       </span>
                       {active && (
-                        <Check className="ml-auto size-5 text-primary" />
+                        <Check className="ml-auto size-5 shrink-0 text-primary" />
                       )}
                     </button>
                   );

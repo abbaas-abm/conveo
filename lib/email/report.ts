@@ -6,6 +6,7 @@ import type { UserPosition } from "@/lib/types";
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
   STAFF: "Staff",
+  GUEST: "Guest",
   GUEST_SPEAKER: "Guest Speaker",
 };
 
@@ -61,9 +62,9 @@ export async function deliverEventReport({
       .maybeSingle();
     if (!event) throw new Error("Event not found.");
 
-    const [rsvpRes, attendanceRes, feedbackRes] = await Promise.all([
+    const [registrationRes, attendanceRes, feedbackRes] = await Promise.all([
       supabase
-        .from("rsvps")
+        .from("registrations")
         .select(
           "attendee_id, position, created_at, attendee:profiles!attendee_id(first_name,last_name)",
         )
@@ -91,8 +92,8 @@ export async function deliverEventReport({
     } | null;
 
     const positionByAttendee = new Map<string, UserPosition>();
-    const rsvps = (
-      (rsvpRes.data ?? []) as unknown as Array<{
+    const registrations = (
+      (registrationRes.data ?? []) as unknown as Array<{
         attendee_id: string;
         position: UserPosition | null;
         created_at: string;
@@ -102,7 +103,7 @@ export async function deliverEventReport({
       if (r.position) positionByAttendee.set(r.attendee_id, r.position);
       return {
         name: nameOf(r.attendee),
-        detail: r.position ? POSITION_LABELS[r.position] : "RSVP",
+        detail: r.position ? POSITION_LABELS[r.position] : "Registration",
         dateText: formatDateTime(r.created_at),
       };
     });
@@ -147,10 +148,10 @@ export async function deliverEventReport({
       description: event.description,
       dateText: `${formatDate(event.start_date)} - ${formatDate(event.end_date)}`,
       venue: event.venue,
-      totalRsvps: rsvps.length,
+      totalRegistrations: registrations.length,
       totalAttendees: attendees.length,
       averageRating,
-      rsvps,
+      registrations,
       attendees,
       feedback,
     });
@@ -167,13 +168,13 @@ export async function deliverEventReport({
       body: JSON.stringify({
         to,
         subject: `Report: ${event.title}`,
-        from: { name: "DLU Reports", email: "reports@conveo.co.za" },
+        from: { name: "Wits CSD", email: "reports@witscsd.co.za" },
         body: `
           <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;line-height:1.6;">
             <p>Hello,</p>
-            <p>Please find attached the DLU event report for <strong>${event.title}</strong>.</p>
-            <p>It includes attendance, RSVP and feedback summaries for the event.</p>
-            <p style="color:#6b7280;font-size:13px;">Development &amp; Leadership Unit · University of the Witwatersrand</p>
+            <p>Please find attached the CSD event report for <strong>${event.title}</strong>.</p>
+            <p>It includes attendance, registrations and feedback summaries for the event.</p>
+            <p style="color:#6b7280;font-size:13px;">Centre for Student Development · University of the Witwatersrand</p>
           </div>`,
         attachments: [
           { filename, content: base64, contentType: "application/pdf" },

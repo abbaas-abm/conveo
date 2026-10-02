@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Hero } from "@/components/home/Hero";
-import { Pillars } from "@/components/home/Pillars";
+import { CoreUnits } from "@/components/home/CoreUnits";
 import { FeaturedEventSection } from "@/components/home/FeaturedEventSection";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { FeaturedEventSkeleton } from "@/components/home/FeaturedEventSkeleton";
@@ -21,7 +21,7 @@ export default function HomePage() {
       >
         <FeaturedEventSection />
       </Suspense>
-      <Pillars />
+      <CoreUnits />
       <Suspense
         fallback={
           <section className="border-t border-gray-200 bg-slate-50 py-16 sm:py-20">

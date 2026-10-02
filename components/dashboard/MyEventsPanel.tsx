@@ -19,33 +19,33 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate, formatTime } from "@/lib/utils";
-import type { RsvpWithEvent } from "@/lib/data";
+import type { RegistrationWithEvent } from "@/lib/data";
 
-export function MyEventsPanel({ rsvps }: { rsvps: RsvpWithEvent[] }) {
+export function MyEventsPanel({ registrations }: { registrations: RegistrationWithEvent[] }) {
   const router = useRouter();
   const [pendingId, setPendingId] = React.useState<string | null>(null);
 
-  async function cancelRsvp(rsvp: RsvpWithEvent) {
-    setPendingId(rsvp.id);
+  async function cancelRegistration(registration: RegistrationWithEvent) {
+    setPendingId(registration.id);
     try {
       const supabase = createClient();
       const { error } = await supabase
-        .from("rsvps")
+        .from("registrations")
         .update({ status: "CANCELLED" })
-        .eq("id", rsvp.id);
+        .eq("id", registration.id);
       if (error) throw error;
-      toast.success("RSVP cancelled.");
+      toast.success("Registration cancelled.");
       router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Could not cancel RSVP.",
+        error instanceof Error ? error.message : "Could not cancel registration.",
       );
     } finally {
       setPendingId(null);
     }
   }
 
-  if (rsvps.length === 0) {
+  if (registrations.length === 0) {
     return (
       <Card className="flex flex-col items-center justify-center border-dashed border-gray-300 bg-slate-50 px-6 py-14 text-center">
         <Ticket className="size-6 text-gray-400" />
@@ -65,11 +65,11 @@ export function MyEventsPanel({ rsvps }: { rsvps: RsvpWithEvent[] }) {
 
   return (
     <div className="space-y-4">
-      {rsvps.map((rsvp) => {
-        const event = rsvp.event;
-        const isConfirmed = rsvp.status === "CONFIRMED";
+      {registrations.map((registration) => {
+        const event = registration.event;
+        const isConfirmed = registration.status === "CONFIRMED";
         return (
-          <Card key={rsvp.id} className="border-gray-200 p-5">
+          <Card key={registration.id} className="border-gray-200 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -113,10 +113,10 @@ export function MyEventsPanel({ rsvps }: { rsvps: RsvpWithEvent[] }) {
               </div>
 
               <div className="flex shrink-0 gap-2">
-                {isConfirmed && rsvp.attendee_tag_url && (
+                {isConfirmed && registration.attendee_tag_url && (
                   <Button asChild variant="default" size="sm">
                     <a
-                      href={`${rsvp.attendee_tag_url}?download`}
+                      href={`${registration.attendee_tag_url}?download`}
                       target="_blank"
                       rel="noopener noreferrer"
                       download
@@ -134,10 +134,10 @@ export function MyEventsPanel({ rsvps }: { rsvps: RsvpWithEvent[] }) {
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:bg-red-50 hover:text-destructive"
-                    onClick={() => cancelRsvp(rsvp)}
-                    disabled={pendingId === rsvp.id}
+                    onClick={() => cancelRegistration(registration)}
+                    disabled={pendingId === registration.id}
                   >
-                    {pendingId === rsvp.id ? (
+                    {pendingId === registration.id ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <CalendarX2 className="size-4" />

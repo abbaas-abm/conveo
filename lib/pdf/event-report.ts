@@ -14,10 +14,10 @@ export interface EventReportData {
   description: string | null;
   dateText: string;
   venue: string | null;
-  totalRsvps: number;
+  totalRegistrations: number;
   totalAttendees: number;
   averageRating: number | null;
-  rsvps: { name: string; detail: string; dateText: string }[];
+  registrations: { name: string; detail: string; dateText: string }[];
   attendees: { name: string; detail: string; dateText: string }[];
   feedback: {
     name: string;
@@ -248,8 +248,8 @@ export async function generateEventReport(
     y - cardH,
     cardW,
     cardH,
-    "Total RSVPs",
-    String(data.totalRsvps),
+    "Total registrations",
+    String(data.totalRegistrations),
   );
   statCard(
     MARGIN + cardW + gap,
@@ -346,7 +346,7 @@ export async function generateEventReport(
     y -= 16;
   }
 
-  section("RSVPs", data.rsvps);
+  section("Registrations", data.registrations);
   section("Attendees", data.attendees);
 
   // Feedback (custom rows with rating + comment)

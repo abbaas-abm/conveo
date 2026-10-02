@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CalendarX2, Megaphone, Search, X } from "lucide-react";
 import {
@@ -83,18 +84,28 @@ export function EventsExplorer({
 
   return (
     <div className="flex flex-1 flex-col">
-      <section className="bg-primary py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
-            Events &amp; RSVP Portal
+      <section className="relative isolate overflow-hidden bg-primary py-16 sm:py-20">
+        <Image
+          src="/stage-speaker.JPG"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-primary/85" />
+
+        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#d9b45b]">
+            Events &amp; Registration Portal
           </p>
           <h1 className="mt-3 text-3xl font-semibold leading-tight text-balance text-white sm:text-4xl">
-            DLU Events &amp; Program Schedule
+            CSD Central Events &amp; Engagement Hub
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/85">
-            Discover workshops, leadership summits, pitch nights and critical
-            engagements. Reserve your spot and manage your attendance
-            seamlessly.
+            Access university-wide leadership conferences, volunteer drives,
+            governance workshops and transition summits. Reserve your spot and
+            manage your engagement portfolio.
           </p>
 
           <div className="mx-auto mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row">
@@ -159,7 +170,7 @@ export function EventsExplorer({
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-                        From the DLU Team
+                        From the CSD Team
                       </span>
                       {announcement.event?.title && (
                         <Badge variant="secondary" className="font-normal">

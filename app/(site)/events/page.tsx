@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { EventsExplorer } from "@/components/events/EventsExplorer";
 import { getEvents, getRecentAnnouncements } from "@/lib/data";
 
-export const metadata: Metadata = { title: "Events & RSVP" };
+export const metadata: Metadata = { title: "Events & Registration" };
 
 export default async function EventsPage() {
   const [events, announcements] = await Promise.all([

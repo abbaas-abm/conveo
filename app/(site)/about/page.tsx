@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import {
-  Award,
   Building2,
-  Compass,
-  Globe2,
-  HandHeart,
-  Heart,
-  Lightbulb,
+  HeartHandshake,
   ShieldCheck,
   Sparkles,
   Users,
@@ -15,115 +10,96 @@ import {
 import { PageHero } from "@/components/layout/PageHero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CoreUnits } from "@/components/home/CoreUnits";
 
-export const metadata: Metadata = { title: "About DLU" };
+export const metadata: Metadata = { title: "About CSD" };
 
-const VALUES: { icon: LucideIcon; title: string; text: string }[] = [
+const CONSTITUENT_UNITS = [
   {
-    icon: Award,
-    title: "Excellence",
-    text: "Striving for high standards in personal and professional execution.",
+    name: "Development & Leadership Unit (DLU)",
+    focus: "Leadership, experiential learning & entrepreneurship.",
   },
   {
-    icon: Lightbulb,
-    title: "Innovation",
-    text: "Encouraging creative solutions and entrepreneurial mindsets.",
+    name: "Wits Citizenship & Community Outreach (WCCO)",
+    focus: "Civic engagement, social justice & volunteerism.",
+  },
+  {
+    name: "Student Governance Office (SGO)",
+    focus: "Democratic processes, representation & accountability.",
+  },
+  {
+    name: "Student Transitions & Persistence Unit (STPU)",
+    focus: "Onboarding, first-year integration & persistence.",
+  },
+];
+
+const PILLARS: { icon: LucideIcon; title: string; text: string }[] = [
+  {
+    icon: Sparkles,
+    title: "Holistic Development",
+    text: "Balancing academic success with social, leadership and emotional growth.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Active Citizenship & Service",
+    text: "Encouraging community engagement, volunteerism and advocacy.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Effective Governance",
+    text: "Supporting student leadership bodies and democratic participation.",
   },
   {
     icon: Users,
-    title: "Collaboration",
-    text: "Building spaces to lead with and in relation to others.",
+    title: "Persistence & Resilience",
+    text: "Providing transition frameworks that help students navigate university life successfully.",
   },
-  {
-    icon: HandHeart,
-    title: "Impact & Activism",
-    text: "Driving tangible, positive societal transformation.",
-  },
-  {
-    icon: Globe2,
-    title: "Diversity",
-    text: "Embracing perspectives across all faculties and backgrounds.",
-  },
-];
-
-const OBJECTIVES: { icon: LucideIcon; title: string; text: string }[] = [
-  {
-    icon: Compass,
-    title: "Purposeful leadership",
-    text: "Develop confident, ethical leaders equipped to navigate complexity with empathy and integrity.",
-  },
-  {
-    icon: Sparkles,
-    title: "Experiential growth",
-    text: "Move learning beyond the classroom through immersive, hands-on leadership experiences.",
-  },
-  {
-    icon: Heart,
-    title: "Active citizenship",
-    text: "Foster volunteerism, civic duty and social responsibility across the Wits community.",
-  },
-  {
-    icon: Building2,
-    title: "Venture creation",
-    text: "Support student innovators to transform ideas into sustainable, impactful ventures.",
-  },
-];
-
-const TEAM = [
-  { name: "DLU Programmes Office", role: "Programme design & delivery" },
-  { name: "Student Leadership Team", role: "Peer facilitation & community" },
-  { name: "Entrepreneurship Hub", role: "Innovation & venture support" },
-  { name: "Partnerships & Engagement", role: "Industry & alumni networks" },
 ];
 
 export default function AboutPage() {
   return (
     <>
       <PageHero
-        eyebrow="About the DLU"
-        title="Developing Wits students into leaders of consequence"
-        subtitle="The Development and Leadership Unit operates within the Division of Student Affairs, providing comprehensive co-curricular development for students across all faculties."
+        eyebrow="About the CSD"
+        title="A dynamic, innovative centre for student development"
+        subtitle="The Centre for Student Development is a unit within the Division of Student Affairs at Wits University, integrating and enhancing student development and support services."
       />
 
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
             <Badge variant="blue">
-              <ShieldCheck className="size-3.5" />
+              <Building2 className="size-3.5" />
               Our mission
             </Badge>
             <h2 className="mt-4 text-2xl font-semibold leading-tight text-gray-900 sm:text-3xl">
-              Unlocking personal, social and professional growth
+              Shaping well-rounded graduates
             </h2>
             <p className="mt-5 text-base leading-relaxed text-gray-600">
-              We provide comprehensive co-curricular development opportunities
-              for students across all faculties who aspire to grow personally,
-              socially and professionally.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-gray-600">
-              Through a vibrant developmental student experience, we aim to
-              incubate a generation of change-makers and innovators equipped to
-              shape a better society locally, nationally and globally.
+              Established to integrate and enhance student development and
+              support services, the CSD brings together four key constituent
+              units. By providing holistic, inclusive and empowering
+              co-curricular experiences, the CSD plays a vital role in shaping
+              well-rounded graduates equipped to drive meaningful societal
+              transformation across all sectors.
             </p>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            {OBJECTIVES.map((objective) => {
-              const Icon = objective.icon;
-              return (
-                <Card key={objective.title} className="border-gray-200 p-5">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-primary">
-                    <Icon className="size-5" />
-                  </div>
-                  <h3 className="mt-4 font-medium text-gray-900">
-                    {objective.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
-                    {objective.text}
-                  </p>
-                </Card>
-              );
-            })}
+          <div className="space-y-3">
+            {CONSTITUENT_UNITS.map((unit) => (
+              <Card
+                key={unit.name}
+                className="flex items-start gap-4 border-gray-200 p-5"
+              >
+                <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary">
+                  <Building2 className="size-5" />
+                </span>
+                <div>
+                  <h3 className="font-medium text-gray-900">{unit.name}</h3>
+                  <p className="mt-0.5 text-sm text-gray-600">{unit.focus}</p>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -132,26 +108,27 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h2 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
-              Core values
+              Core strategic pillars
             </h2>
             <p className="mt-3 text-base leading-relaxed text-gray-600">
-              The principles that guide our work across every programme.
+              The principles that guide student development across every CSD
+              unit.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {VALUES.map((value) => {
-              const Icon = value.icon;
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PILLARS.map((pillar) => {
+              const Icon = pillar.icon;
               return (
-                <Card key={value.title} className="h-full border-gray-200 p-6">
+                <Card key={pillar.title} className="h-full border-gray-200 p-6">
                   <div className="flex size-10 items-center justify-center rounded-lg bg-white text-primary">
                     <Icon className="size-5" />
                   </div>
                   <h3 className="mt-4 font-medium text-gray-900">
-                    {value.title}
+                    {pillar.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                    {value.text}
+                    {pillar.text}
                   </p>
                 </Card>
               );
@@ -160,32 +137,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
-              Student support structures
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-gray-600">
-              Teams dedicated to your development across the university.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TEAM.map((member) => (
-              <Card key={member.name} className="h-full border-gray-200 p-6">
-                <div className="flex size-12 items-center justify-center rounded-full bg-primary text-base font-medium text-white">
-                  {member.name.charAt(0)}
-                </div>
-                <h3 className="mt-4 font-medium text-gray-900">
-                  {member.name}
-                </h3>
-                <p className="mt-1 text-sm text-gray-600">{member.role}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CoreUnits />
     </>
   );
 }

@@ -36,8 +36,8 @@ export function ContactForm() {
     setSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 700));
-      console.log("DLU contact inquiry", values);
-      toast.success("Message sent! The DLU team will be in touch shortly.");
+      console.log("CSD contact inquiry", values);
+      toast.success("Message sent! The CSD team will be in touch shortly.");
       form.reset();
     } catch {
       toast.error("Could not send your message. Please try again.");
@@ -78,7 +78,7 @@ export function ContactForm() {
         <Label htmlFor="subject">Subject</Label>
         <Input
           id="subject"
-          placeholder="How can the DLU help?"
+          placeholder="How can the CSD help?"
           {...form.register("subject")}
         />
         {form.formState.errors.subject && (

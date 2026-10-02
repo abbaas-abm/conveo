@@ -14,25 +14,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { RsvpButton } from "@/components/events/RsvpButton";
+import { RegisterButton } from "@/components/events/RegisterButton";
 import { EventCountdown } from "@/components/events/EventCountdown";
 import { ExpandableSection } from "@/components/events/ExpandableSection";
+import { EventProgramme } from "@/components/events/EventProgramme";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements } from "@/lib/data";
 import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
-import type { ProgramBlockType, RsvpStatus } from "@/lib/types";
-
-const BLOCK_LABELS: Record<ProgramBlockType, string> = {
-  KEYNOTE: "Keynote",
-  PANEL_DISCUSSION: "Panel Discussion",
-  WORKSHOP: "Workshop",
-  NETWORKING: "Networking",
-  BREAK: "Break",
-  ENTERTAINMENT: "Entertainment",
-  QA_SESSION: "Q&A Session",
-  OTHER: "Session",
-};
+import type { RegistrationStatus } from "@/lib/types";
 
 export default async function EventDetailPage(
   props: PageProps<"/events/[id]">,
@@ -54,15 +44,15 @@ export default async function EventDetailPage(
 
   if (!event) notFound();
 
-  let myStatus: RsvpStatus | null = null;
+  let myStatus: RegistrationStatus | null = null;
   if (supabase && user) {
     const { data } = await supabase
-      .from("rsvps")
+      .from("registrations")
       .select("status")
       .eq("event_id", id)
       .eq("attendee_id", user.id)
       .maybeSingle();
-    myStatus = (data?.status as RsvpStatus) ?? null;
+    myStatus = (data?.status as RegistrationStatus) ?? null;
   }
 
   const eventOpen = event.status === "OPEN";
@@ -73,17 +63,6 @@ export default async function EventDetailPage(
       ),
     ).values(),
   );
-
-  const programDays = Array.from(
-    program
-      .reduce((map, block) => {
-        const list = map.get(block.day_number) ?? [];
-        list.push(block);
-        map.set(block.day_number, list);
-        return map;
-      }, new Map<number, typeof program>())
-      .entries(),
-  ).sort((a, b) => a[0] - b[0]);
 
   return (
     <div className="bg-white pb-16">
@@ -213,94 +192,10 @@ export default async function EventDetailPage(
                   The programme for this event is being finalised.
                 </p>
               ) : (
-                <ExpandableSection
-                  enabled={program.length > 2}
-                  collapsedClassName="max-h-96"
-                >
-                <div className="mt-6 space-y-10">
-                  {programDays.map(([day, dayBlocks]) => (
-                    <div key={day}>
-                      {programDays.length > 1 && (
-                        <div className="mb-5 flex items-center gap-3">
-                          <span className="rounded-md bg-[#d9b45b]/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-[#8a6d2f]">
-                            Day {day}
-                          </span>
-                          <span className="h-px flex-1 bg-gray-200" />
-                        </div>
-                      )}
-                      <ol className="space-y-6">
-                        {dayBlocks.map((block, index) => (
-                          <li key={block.id} className="relative flex gap-5">
-                            <div className="flex flex-col items-center">
-                              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-white">
-                                {index + 1}
-                              </span>
-                              {index < dayBlocks.length - 1 && (
-                                <span className="mt-1 w-px flex-1 bg-gray-200" />
-                              )}
-                            </div>
-                            <div className="flex-1 pb-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge variant="secondary">
-                                  {BLOCK_LABELS[block.type]}
-                                </Badge>
-                                <span className="text-xs text-gray-500">
-                                  {formatTime(block.start_time)} –{" "}
-                                  {formatTime(block.end_time)}
-                                </span>
-                              </div>
-                              <h3 className="mt-2 font-medium text-gray-900">
-                                {block.title}
-                              </h3>
-                              {block.description && (
-                                <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                                  {block.description}
-                                </p>
-                              )}
-                              {block.speakers.length > 0 && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  {block.speakers.map((speaker) => (
-                                    <div
-                                      key={speaker.id}
-                                      className="flex items-center gap-2 rounded-full border border-gray-200 py-1 pl-1 pr-3"
-                                    >
-                                      {speaker.avatar_url ? (
-                                        <Image
-                                          src={speaker.avatar_url}
-                                          alt={`${speaker.first_name} ${speaker.last_name}`}
-                                          width={28}
-                                          height={28}
-                                          className="size-7 rounded-full object-cover"
-                                        />
-                                      ) : (
-                                        <span className="flex size-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-medium text-gray-600">
-                                          {initials(
-                                            speaker.first_name,
-                                            speaker.last_name,
-                                          )}
-                                        </span>
-                                      )}
-                                      <span className="text-xs text-gray-700">
-                                        {[
-                                          speaker.title,
-                                          speaker.first_name,
-                                          speaker.last_name,
-                                        ]
-                                          .filter(Boolean)
-                                          .join(" ")}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  ))}
-                </div>
-                </ExpandableSection>
+                <EventProgramme
+                  program={program}
+                  isAuthenticated={Boolean(user)}
+                />
               )}
             </Card>
 
@@ -381,13 +276,13 @@ export default async function EventDetailPage(
                 <Separator />
                 <DetailRow icon={MapPin} label="Venue">
                   {event.mode === "ONLINE"
-                    ? "Online (link shared on RSVP)"
+                    ? "Online (link shared on registration)"
                     : (event.venue ?? "Wits Campus")}
                 </DetailRow>
               </div>
 
               <div className="mt-6">
-                <RsvpButton
+                <RegisterButton
                   eventId={event.id}
                   isAuthenticated={Boolean(user)}
                   initialStatus={myStatus}
@@ -441,7 +336,7 @@ export default async function EventDetailPage(
                       className="rounded-lg border border-gray-200 bg-slate-50 p-4"
                     >
                       <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                        From the DLU Team
+                        From the CSD Team
                       </p>
                       <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
                         {announcement.text}

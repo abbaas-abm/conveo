@@ -81,12 +81,12 @@ export function AdminShell({
           >
             <Image
               src="/slc-logo.png"
-              alt="DLU"
+              alt="CSD"
               width={150}
               height={34}
               className="h-7 w-auto group-data-[collapsible=icon]:hidden"
             />
-            <span className="sr-only">DLU Admin</span>
+            <span className="sr-only">CSD Admin</span>
           </Link>
         </SidebarHeader>
 

@@ -78,7 +78,7 @@ export function FeaturedEventCard({ event }: { event: EventRecord }) {
             className="bg-[#d9b45b] text-primary hover:bg-[#c9a54c]"
           >
             <Link href={`/events/${event.id}`}>
-              {isOpen ? "RSVP now" : "Learn more"}
+              {isOpen ? "Register now" : "Learn more"}
               <ArrowRight className="size-4" />
             </Link>
           </Button>

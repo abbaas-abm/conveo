@@ -234,14 +234,14 @@ export function FeedbackFlow({
                 className="mx-auto max-w-md text-base leading-relaxed"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
-                Your feedback has been recorded and will help shape the next DLU
+                Your feedback has been recorded and will help shape the next CSD
                 experience. We can&apos;t wait to see you again.
               </p>
               <p
                 className="text-xs font-semibold uppercase tracking-[0.2em]"
                 style={{ color: DARK_GOLD }}
               >
-                Development &amp; Leadership Unit
+                Centre for Student Development
               </p>
             </motion.div>
           )}

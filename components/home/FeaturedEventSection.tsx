@@ -13,7 +13,7 @@ export async function FeaturedEventSection() {
             Featured event
           </h2>
           <p className="mt-3 text-base leading-relaxed text-gray-600">
-            The latest opportunity on the DLU calendar.
+            The latest opportunity on the CSD calendar.
           </p>
         </div>
 

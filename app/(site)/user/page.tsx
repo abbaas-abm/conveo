@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/layout/PageHero";
 import { UserDashboard } from "@/components/dashboard/UserDashboard";
 import { getCurrentUser } from "@/lib/auth";
-import { getUserRsvps } from "@/lib/data";
+import { getUserRegistrations } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -15,7 +15,7 @@ export default async function UserPage() {
   if (!profile) redirect("/login");
   if (profile.role === "admin") redirect("/admin");
 
-  const rsvps = await getUserRsvps(user.id);
+  const registrations = await getUserRegistrations(user.id);
   const firstName = profile.first_name ?? "Leader";
 
   return (
@@ -27,7 +27,7 @@ export default async function UserPage() {
       />
       <section className="bg-slate-50 py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <UserDashboard profile={profile} rsvps={rsvps} />
+          <UserDashboard profile={profile} registrations={registrations} />
         </div>
       </section>
     </>
