@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverEventReport } from "@/lib/email/report";
+import { enqueue } from "@/lib/queue";
 
 export const runtime = "nodejs";
 
@@ -49,8 +50,12 @@ export async function POST(request: Request) {
     );
   }
 
-  // Generate + send in the background so the request returns immediately.
-  after(() => deliverEventReport({ supabase, to: email, eventId }));
+  // Generate + send in the background. Prefer the queue; fall back to inline
+  // delivery if Redis is unavailable.
+  const queued = await enqueue("reports", "send-report", { eventId, to: email });
+  if (!queued) {
+    after(() => deliverEventReport({ supabase, to: email, eventId }));
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,8 @@ import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { FeaturedEventSkeleton } from "@/components/home/FeaturedEventSkeleton";
 import { EventCardSkeleton } from "@/components/events/EventCard";
 
+export const revalidate = 60;
+
 export default function HomePage() {
   return (
     <>

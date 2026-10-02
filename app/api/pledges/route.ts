@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverPledgeDocument } from "@/lib/email/pledge";
+import { enqueue } from "@/lib/queue";
 
 export const runtime = "nodejs";
 
@@ -58,8 +59,12 @@ export async function POST(request: Request) {
 
   const pledgeId = pledge.id as string;
 
-  // Generate the document + email in the background so the UI is instant.
-  after(() => deliverPledgeDocument({ supabase, pledgeId }));
+  // Generate the document + email in the background. Prefer the queue; fall
+  // back to inline delivery if Redis is unavailable.
+  const queued = await enqueue("pledges", "send-pledge", { pledgeId });
+  if (!queued) {
+    after(() => deliverPledgeDocument({ supabase, pledgeId }));
+  }
 
   return NextResponse.json({ ok: true, pledgeId });
 }

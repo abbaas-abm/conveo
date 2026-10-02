@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ContactForm } from "@/components/contact/ContactForm";
 
 export const metadata: Metadata = { title: "Contact" };
+export const revalidate = 3600;
 
 const DETAILS = [
   {

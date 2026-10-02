@@ -2,9 +2,9 @@ services:
   web:
     build:
       context: .
+      target: runner
       args:
         # Public values must exist at build time (inlined into the client bundle).
-        # They are read from the .env file in this directory.
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-}
@@ -12,6 +12,62 @@ services:
     container_name: conveo-web
     env_file:
       - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    # Published to localhost only; nginx on the host proxies to it.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - next-cache:/app/.next/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Pin the web process to core 0 so PDF work on core 1 never stalls SSR.
+    cpuset: "0"
+    mem_limit: 2g
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    build:
+      context: .
+      target: worker
+    image: conveo-worker:latest
+    container_name: conveo-worker
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Dedicated core for pdf-lib + QR generation + Plunk delivery.
+    cpuset: "1"
+    mem_limit: 2g
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: conveo-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:
+  next-cache:

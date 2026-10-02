@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateEvents } from "@/lib/cache-actions";
 import { cn, formatDate } from "@/lib/utils";
 import type { EventRecord, EventMode, EventStatus } from "@/lib/types";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
@@ -132,6 +133,7 @@ export function EventEditor({
         .eq("id", event.id);
       if (error) throw error;
       setForm((prev) => ({ ...prev, status: next }));
+      void revalidateEvents();
       toast.success(`Event status set to ${next}.`);
     } catch (error) {
       setPreferenceStatus(previous);
@@ -213,6 +215,7 @@ export function EventEditor({
         .single();
       if (error) throw error;
       setForm(toForm(updated as EventRecord));
+      void revalidateEvents();
       toast.success("Event saved.");
     } catch (error) {
       toast.error(

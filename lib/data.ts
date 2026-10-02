@@ -1,4 +1,6 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/anon";
 import type {
   EventRecord,
   EventGalleryImage,
@@ -192,7 +194,8 @@ export async function getSpeakersByEvent(
       .from("speakers")
       .select("*")
       .eq("event_id", eventId)
-      .order("created_at", { ascending: false });
+      .order("speaker_order", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: true });
     if (error) throw error;
     return (data ?? []) as Speaker[];
   } catch {
@@ -290,3 +293,71 @@ export async function getPledgesForEvent(
     return [];
   }
 }
+
+// ---------------------------------------------------------------------------
+// Cacheable public reads
+//
+// These use a cookie-less client so they can be cached and shared across
+// visitors. The event detail page intentionally does NOT use these — it stays
+// dynamic. Invalidate with `revalidateTag("events")` after admin mutations.
+// ---------------------------------------------------------------------------
+
+export const getCachedEvents = unstable_cache(
+  async (): Promise<EventRecord[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("start_date", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as EventRecord[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-events"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getCachedFeaturedEvent = unstable_cache(
+  async (): Promise<EventRecord | null> => {
+    const supabase = createAnonClient();
+    if (!supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as unknown as EventRecord) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  ["public-featured-event"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getCachedRecentAnnouncements = unstable_cache(
+  async (limit = 5): Promise<AnnouncementWithEvent[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("id, event_id, text, created_at, event:events(id, title)")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as unknown as AnnouncementWithEvent[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-recent-announcements"],
+  { revalidate: 30, tags: ["events"] },
+);

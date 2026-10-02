@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/events/EventCard";
-import { getEvents } from "@/lib/data";
+import { getCachedEvents } from "@/lib/data";
 
 export async function UpcomingEvents() {
-  const events = await getEvents();
+  const events = await getCachedEvents();
   const highlights = events.filter((event) => event.status !== "ENDED").slice(0, 3);
 
   return (

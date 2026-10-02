@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Loader2, Mic2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Loader2, Mic2, Pencil, Plus, Search, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
-import { initials, storagePathFromPublicUrl } from "@/lib/utils";
+import { initials, storagePathFromPublicUrl, cn } from "@/lib/utils";
 import type { Speaker, EventRecord } from "@/lib/types";
 import { SpeakerFormDialog } from "@/components/admin/SpeakerFormDialog";
 
@@ -36,17 +36,23 @@ export function AdminSpeakers({
   const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Speaker | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [draggingId, setDraggingId] = React.useState<string | null>(null);
+  const [overId, setOverId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (initialSpeakers !== undefined) return;
     let active = true;
     (async () => {
       const supabase = createClient();
-      let request = supabase
-        .from("speakers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (eventId) request = request.eq("event_id", eventId);
+      let request = supabase.from("speakers").select("*");
+      if (eventId) {
+        request = request
+          .eq("event_id", eventId)
+          .order("speaker_order", { ascending: true, nullsFirst: false })
+          .order("created_at", { ascending: true });
+      } else {
+        request = request.order("created_at", { ascending: false });
+      }
       const { data } = await request;
       if (active) {
         setSpeakers((data ?? []) as Speaker[]);
@@ -74,7 +80,19 @@ export function AdminSpeakers({
     };
   }, [eventId, initialEvents]);
 
-  const filtered = speakers.filter((speaker) => {
+  const ordered = React.useMemo(() => {
+    if (!eventId) return speakers;
+    return [...speakers].sort((a, b) => {
+      const aOrder = a.speaker_order ?? Number.MAX_SAFE_INTEGER;
+      const bOrder = b.speaker_order ?? Number.MAX_SAFE_INTEGER;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return a.created_at.localeCompare(b.created_at);
+    });
+  }, [speakers, eventId]);
+
+  const canReorder = Boolean(eventId) && query.trim() === "";
+
+  const filtered = ordered.filter((speaker) => {
     const q = query.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -103,7 +121,7 @@ export function AdminSpeakers({
       const exists = prev.some((s) => s.id === saved.id);
       return exists
         ? prev.map((s) => (s.id === saved.id ? saved : s))
-        : [saved, ...prev];
+        : [...prev, saved];
     });
   }
 
@@ -139,6 +157,40 @@ export function AdminSpeakers({
       );
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function reorderSpeakers(draggedId: string, targetId: string) {
+    if (draggedId === targetId) return;
+    const list = filtered;
+    const from = list.findIndex((s) => s.id === draggedId);
+    const to = list.findIndex((s) => s.id === targetId);
+    if (from === -1 || to === -1) return;
+
+    const next = list.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    const reordered = next.map((speaker, index) => ({
+      ...speaker,
+      speaker_order: index,
+    }));
+
+    const byId = new Map(reordered.map((s) => [s.id, s]));
+    setSpeakers((prev) => prev.map((s) => byId.get(s.id) ?? s));
+
+    try {
+      const supabase = createClient();
+      await Promise.all(
+        reordered.map((speaker) =>
+          supabase
+            .from("speakers")
+            .update({ speaker_order: speaker.speaker_order })
+            .eq("id", speaker.id),
+        ),
+      );
+    } catch (error) {
+      toast.error("Could not save the new order.");
+      console.error(error);
     }
   }
 
@@ -211,8 +263,45 @@ export function AdminSpeakers({
             return (
               <div
                 key={speaker.id}
-                className="flex items-center gap-4 px-5 py-4"
+                {...(canReorder
+                  ? {
+                      draggable: true,
+                      onDragStart: () => setDraggingId(speaker.id),
+                      onDragEnd: () => {
+                        setDraggingId(null);
+                        setOverId(null);
+                      },
+                      onDragOver: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        setOverId(speaker.id);
+                      },
+                      onDragLeave: () =>
+                        setOverId((prev) =>
+                          prev === speaker.id ? null : prev,
+                        ),
+                      onDrop: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        if (draggingId) {
+                          void reorderSpeakers(draggingId, speaker.id);
+                        }
+                        setDraggingId(null);
+                        setOverId(null);
+                      },
+                    }
+                  : {})}
+                className={cn(
+                  "flex items-center gap-4 px-5 py-4 transition-colors",
+                  draggingId === speaker.id && "opacity-50",
+                  overId === speaker.id &&
+                    draggingId !== speaker.id &&
+                    "bg-slate-50",
+                )}
               >
+                {canReorder && (
+                  <span className="flex shrink-0 cursor-grab items-center text-gray-300 active:cursor-grabbing">
+                    <GripVertical className="size-5" />
+                  </span>
+                )}
                 <div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-slate-100">
                   {speaker.avatar_url ? (
                     <Image

@@ -26,6 +26,10 @@ import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
 
+// This page shows per-user registration state and live event data, so it must
+// stay dynamic (never cached).
+export const dynamic = "force-dynamic";
+
 export default async function EventDetailPage(
   props: PageProps<"/events/[id]">,
 ) {
@@ -64,10 +68,15 @@ export default async function EventDetailPage(
         (speaker) => [speaker.id, speaker],
       ),
     ).values(),
-  );
+  ).sort((a, b) => {
+    const aOrder = a.speaker_order ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = b.speaker_order ?? Number.MAX_SAFE_INTEGER;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.created_at.localeCompare(b.created_at);
+  });
 
   return (
-    <div className="bg-white pb-16">
+    <div className="w-full overflow-x-hidden bg-white pb-16">
       <EventAnnouncementsButton announcements={announcements} />
       <section className="w-full bg-slate-100">
         <div className="relative mx-auto aspect-[5/2] max-h-[560px] w-full overflow-hidden">
@@ -115,7 +124,7 @@ export default async function EventDetailPage(
             </Badge>
           </div>
 
-          <h1 className="mt-3 text-3xl font-semibold leading-tight text-balance text-gray-900 sm:text-4xl">
+          <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-balance text-gray-900 sm:text-4xl">
             {event.title}
           </h1>
 
@@ -147,7 +156,7 @@ export default async function EventDetailPage(
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6 lg:order-1">
+          <div className="min-w-0 space-y-6 lg:order-1">
             {event.has_about ? (
             <Card className="border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -260,7 +269,7 @@ export default async function EventDetailPage(
             ) : null}
           </div>
 
-          <aside className="order-first space-y-6 lg:order-2 lg:sticky lg:top-20 lg:h-fit">
+          <aside className="order-first min-w-0 space-y-6 lg:order-2 lg:sticky lg:top-20 lg:h-fit">
             {event.has_information && (
               <EventCountdown
                 initialSeconds={secondsUntil(event.start_date)}
@@ -401,13 +410,13 @@ function DetailRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-3">
+    <div className="flex min-w-0 gap-3">
       <Icon className="mt-0.5 size-4 shrink-0 text-gray-400" />
-      <div>
+      <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
           {label}
         </p>
-        <p className="mt-0.5 text-gray-700">{children}</p>
+        <p className="mt-0.5 break-words text-gray-700">{children}</p>
       </div>
     </div>
   );

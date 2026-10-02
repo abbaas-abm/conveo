@@ -14,7 +14,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "witscsd.co.za",
+      },
+      {
+        protocol: "https",
+        hostname: "www.witscsd.co.za",
       },
     ],
   },

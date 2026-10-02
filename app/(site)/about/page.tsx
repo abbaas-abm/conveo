@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { CoreUnits } from "@/components/home/CoreUnits";
 
 export const metadata: Metadata = { title: "About CSD" };
+export const revalidate = 3600;
 
 const CONSTITUENT_UNITS = [
   {

@@ -18,20 +18,54 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-export function Navbar({ profile }: { profile: Profile | null }) {
+export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    let active = true;
+
+    async function load(userId: string | null) {
+      if (!userId) {
+        if (active) setProfile(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle<Profile>();
+      if (active) setProfile(data ?? null);
+    }
+
+    void supabase.auth
+      .getUser()
+      .then(({ data }) => load(data.user?.id ?? null));
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        void load(session?.user?.id ?? null);
+      },
+    );
+
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
 
   async function handleSignOut() {
     setSigningOut(true);
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
+      setProfile(null);
       toast.success("Signed out successfully");
       router.push("/");
-      router.refresh();
     } catch {
       toast.error("Could not sign out. Please try again.");
     } finally {

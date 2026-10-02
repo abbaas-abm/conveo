@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverRegistrationEmail } from "@/lib/email/registration";
+import { enqueue } from "@/lib/queue";
 import type { UserPosition } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -86,25 +87,30 @@ export async function POST(request: Request) {
     ]);
 
     if (profile?.email && event) {
-      after(() =>
-        deliverRegistrationEmail({
-          supabase,
-          registrationId,
-          data: {
-            attendeeId: user.id,
-            eventId,
-            email: profile.email,
-            firstName: profile.first_name ?? "",
-            lastName: profile.last_name ?? "",
-            personNumber: profile.person_number ?? null,
-            position: position as UserPosition,
-            eventTitle: event.title,
-            startDate: event.start_date,
-            endDate: event.end_date,
-            venue: event.venue ?? null,
-          },
-        }),
-      );
+      const emailData = {
+        attendeeId: user.id,
+        eventId,
+        email: profile.email,
+        firstName: profile.first_name ?? "",
+        lastName: profile.last_name ?? "",
+        personNumber: profile.person_number ?? null,
+        position: position as UserPosition,
+        eventTitle: event.title,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        venue: event.venue ?? null,
+      };
+
+      const queued = await enqueue("registrations", "send-confirmation", {
+        registrationId,
+        data: emailData,
+      });
+
+      if (!queued) {
+        after(() =>
+          deliverRegistrationEmail({ supabase, registrationId, data: emailData }),
+        );
+      }
     }
   }
 

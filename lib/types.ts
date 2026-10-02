@@ -69,6 +69,7 @@ export interface Speaker {
   title: string | null;
   bio: string | null;
   avatar_url: string | null;
+  speaker_order: number | null;
   created_at: string;
 }
 

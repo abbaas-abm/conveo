@@ -1,9 +1,9 @@
-import { getFeaturedEvent } from "@/lib/data";
+import { getCachedFeaturedEvent } from "@/lib/data";
 import { FeaturedEventCard } from "./FeaturedEventCard";
 import { HeroFallback } from "./HeroFallback";
 
 export async function FeaturedEventSection() {
-  const event = await getFeaturedEvent();
+  const event = await getCachedFeaturedEvent();
 
   return (
     <section className="border-b border-gray-200 bg-white py-16 sm:py-20">

@@ -46,7 +46,23 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# ISR/data cache volume mount point, owned by the runtime user so the named
+# volume inherits writable ownership.
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app/.next/cache
+
 USER nextjs
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+
+# ---------- Worker (PDF generation + email delivery) ----------
+# Runs the BullMQ consumer from the same source tree. It shares the code in
+# `lib/` (PDF templates, email builders) but never serves HTTP.
+FROM node:22-alpine AS worker
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+CMD ["npx", "tsx", "worker/index.ts"]

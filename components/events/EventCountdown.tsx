@@ -23,7 +23,7 @@ export function EventCountdown({
     return (
       <div
         className={cn(
-          "rounded-xl bg-primary p-6 text-center text-white",
+          "rounded-xl bg-primary p-4 text-center text-white sm:p-6",
           className,
         )}
       >
@@ -46,23 +46,23 @@ export function EventCountdown({
   return (
     <div
       className={cn(
-        "rounded-xl bg-primary p-6 text-white shadow-sm",
+        "rounded-xl bg-primary p-4 text-white shadow-sm sm:p-6",
         className,
       )}
     >
       <p className="text-xs font-semibold uppercase tracking-wider text-[#d9b45b]">
         Event starts in
       </p>
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="mt-4 grid grid-cols-4 gap-1.5 sm:gap-2">
         {units.map((unit) => (
           <div
             key={unit.label}
-            className="rounded-lg bg-white/10 py-3 text-center"
+            className="min-w-0 rounded-lg bg-white/10 py-2.5 text-center sm:py-3"
           >
-            <div className="text-2xl font-semibold tabular-nums text-white">
+            <div className="text-xl font-semibold tabular-nums text-white sm:text-2xl">
               {String(unit.value).padStart(2, "0")}
             </div>
-            <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-white/70">
+            <div className="mt-0.5 truncate text-[9px] font-medium uppercase tracking-wide text-white/70 sm:text-[10px]">
               {unit.label}
             </div>
           </div>

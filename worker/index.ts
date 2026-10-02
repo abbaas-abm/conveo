@@ -1,0 +1,93 @@
+import { Worker, type Job } from "bullmq";
+import IORedis from "ioredis";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { deliverRegistrationEmail } from "@/lib/email/registration";
+import { deliverPledgeDocument } from "@/lib/email/pledge";
+import { deliverEventReport } from "@/lib/email/report";
+import type { UserPosition } from "@/lib/types";
+import type {
+  PledgeJob,
+  RegistrationJob,
+  ReportJob,
+} from "@/lib/queue";
+
+const url = process.env.REDIS_URL?.trim();
+if (!url) {
+  console.error("[worker] REDIS_URL is not set. Exiting.");
+  process.exit(1);
+}
+
+const connection = new IORedis(url, { maxRetriesPerRequest: null });
+connection.on("error", (error) => {
+  console.error("[worker] redis error:", error.message);
+});
+
+function log(job: Job, message: string) {
+  console.log(`[worker] ${job.queueName}:${job.id} ${message}`);
+}
+
+const registrationWorker = new Worker<RegistrationJob>(
+  "registrations",
+  async (job) => {
+    const supabase = createAdminClient();
+    await deliverRegistrationEmail({
+      supabase,
+      registrationId: job.data.registrationId,
+      data: {
+        ...job.data.data,
+        position: job.data.data.position as UserPosition,
+      },
+    });
+    log(job, `confirmation processed for ${job.data.data.email}`);
+  },
+  { connection, concurrency: 4 },
+);
+
+const pledgeWorker = new Worker<PledgeJob>(
+  "pledges",
+  async (job) => {
+    const supabase = createAdminClient();
+    await deliverPledgeDocument({ supabase, pledgeId: job.data.pledgeId });
+    log(job, `pledge document processed for ${job.data.pledgeId}`);
+  },
+  { connection, concurrency: 4 },
+);
+
+const reportWorker = new Worker<ReportJob>(
+  "reports",
+  async (job) => {
+    const supabase = createAdminClient();
+    await deliverEventReport({
+      supabase,
+      to: job.data.to,
+      eventId: job.data.eventId,
+    });
+    log(job, `report processed for ${job.data.to}`);
+  },
+  { connection, concurrency: 2 },
+);
+
+for (const worker of [registrationWorker, pledgeWorker, reportWorker]) {
+  worker.on("failed", (job, error) => {
+    console.error(
+      `[worker] ${worker.name} job ${job?.id ?? "?"} failed:`,
+      error.message,
+    );
+  });
+}
+
+console.log("[worker] listening for registrations, pledges, reports");
+
+async function shutdown(signal: string) {
+  console.log(`[worker] received ${signal}, shutting down`);
+  await Promise.all([
+    registrationWorker.close(),
+    pledgeWorker.close(),
+    reportWorker.close(),
+  ]);
+  await connection.quit();
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
