@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Heart, Loader2, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -243,6 +244,16 @@ export function FeedbackFlow({
               >
                 Centre for Student Development
               </p>
+
+              <div>
+                <Link
+                  href={`/events/${eventId}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-white transition-opacity hover:opacity-80 hover:underline"
+                >
+                  <ArrowLeft className="size-4" />
+                  Back to event
+                </Link>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
