@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth";
 import { VolunteerDashboard } from "@/components/volunteer/VolunteerDashboard";
 
-export const metadata: Metadata = { title: "Volunteer Portal" };
+export const metadata: Metadata = { title: "Support Team Portal" };
 
 export default async function VolunteerPage() {
   const { user, profile } = await getCurrentUser();

@@ -207,7 +207,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
           No attendance yet
         </h3>
         <p className="mt-1 text-sm text-gray-600">
-          Attendees checked in by volunteers will appear here.
+          Attendees checked in by the support team will appear here.
         </p>
       </Card>
     );
@@ -304,7 +304,7 @@ export function EventAttendanceTab({ event }: { event: { id: string } }) {
               const volunteerName =
                 [row.volunteer?.first_name, row.volunteer?.last_name]
                   .filter(Boolean)
-                  .join(" ") || "Volunteer";
+                  .join(" ") || "Support Team";
 
               return (
                 <div

@@ -31,7 +31,7 @@ export function UserDashboard({
           <Button asChild>
             <Link href="/volunteer">
               <HeartHandshake className="size-4" />
-              Volunteer Portal
+              Support Team Portal
             </Link>
           </Button>
         </div>

@@ -7,7 +7,6 @@ import {
   CalendarDays,
   ImageOff,
   MapPin,
-  Users,
   Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -18,11 +17,12 @@ import { RegisterButton } from "@/components/events/RegisterButton";
 import { EventCountdown } from "@/components/events/EventCountdown";
 import { ExpandableSection } from "@/components/events/ExpandableSection";
 import { EventProgramme } from "@/components/events/EventProgramme";
+import { EventSpeakers } from "@/components/events/EventSpeakers";
 import { EventAnnouncementsButton } from "@/components/events/EventAnnouncementsButton";
 import { SectionPlaceholder } from "@/components/events/SectionPlaceholder";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements } from "@/lib/data";
-import { formatDate, formatTime, initials, secondsUntil } from "@/lib/utils";
+import { formatDate, formatTime, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
 
@@ -222,50 +222,7 @@ export default async function EventDetailPage(
             {!event.has_speakers ? (
               <SectionPlaceholder title="Speakers &amp; facilitators" />
             ) : speakers.length > 0 ? (
-              <Card className="border-gray-200 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                  <Users className="size-5 text-gray-400" />
-                  Speakers &amp; facilitators
-                </h2>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {speakers.map((speaker) => (
-                    <div
-                      key={speaker.id}
-                      className="flex gap-4 rounded-lg border border-gray-200 p-4"
-                    >
-                      {speaker.avatar_url ? (
-                        <Image
-                          src={speaker.avatar_url}
-                          alt={`${speaker.first_name} ${speaker.last_name}`}
-                          width={56}
-                          height={56}
-                          className="size-14 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-slate-100 font-medium text-gray-600">
-                          {initials(speaker.first_name, speaker.last_name)}
-                        </span>
-                      )}
-                      <div>
-                        <h3 className="font-medium text-gray-900">
-                          {[
-                            speaker.title,
-                            speaker.first_name,
-                            speaker.last_name,
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        </h3>
-                        {speaker.bio && (
-                          <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-gray-600">
-                            {speaker.bio}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              <EventSpeakers speakers={speakers} />
             ) : null}
           </div>
 

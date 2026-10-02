@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import { initials } from "@/lib/utils";
+import { roleLabel } from "@/lib/roles";
 import type { Profile, UserRole } from "@/lib/types";
 
 const ROLES: UserRole[] = ["user", "volunteer", "admin"];
@@ -55,7 +56,7 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
         .update({ role })
         .eq("id", userId);
       if (error) throw error;
-      toast.success(`Role updated to ${role}.`);
+      toast.success(`Role updated to ${roleLabel(role)}.`);
     } catch (error) {
       setItems(previous);
       toast.error(
@@ -135,7 +136,7 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={ROLE_BADGE[person.role]}>
-                        {person.role}
+                        {roleLabel(person.role)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -153,7 +154,7 @@ export function AdminPeople({ profiles }: { profiles: Profile[] }) {
                           <SelectContent>
                             {ROLES.map((role) => (
                               <SelectItem key={role} value={role}>
-                                {role}
+                                {roleLabel(role)}
                               </SelectItem>
                             ))}
                           </SelectContent>
