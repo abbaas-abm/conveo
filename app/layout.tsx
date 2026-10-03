@@ -58,6 +58,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: `(function(){try{if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){document.documentElement.setAttribute('data-pwa','true');}}catch(e){}})();`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            // Capture the install prompt as early as possible so the React
+            // component never misses it (it can fire before hydration).
+            __html: `(function(){try{window.__csdInstallPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__csdInstallPrompt=e;window.dispatchEvent(new Event('csd:installprompt'));});window.addEventListener('appinstalled',function(){window.__csdInstallPrompt=null;});}catch(e){}})();`,
+          }}
+        />
         <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
         <Toaster />
         <InstallAppButton />
