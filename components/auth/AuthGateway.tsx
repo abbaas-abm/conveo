@@ -232,8 +232,11 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                   className="mt-6 space-y-4"
                 >
                   <div className="space-y-2">
-                    <InputGroup className="h-11">
-                      <InputGroupAddon align="inline-start">
+                    <InputGroup className="h-11 pwa:border-white/30 pwa:bg-white/10">
+                      <InputGroupAddon
+                        align="inline-start"
+                        className="pwa:text-white/70"
+                      >
                         <Mail />
                       </InputGroupAddon>
                       <InputGroupInput
@@ -241,6 +244,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                         autoComplete="email"
                         placeholder="you@example.com"
                         aria-invalid={Boolean(form.formState.errors.email)}
+                        className="pwa:text-white pwa:placeholder:text-white/50"
                         {...form.register("email")}
                       />
                     </InputGroup>

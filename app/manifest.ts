@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Wits CSD",
     description:
       "Events, registrations and leadership opportunities from the Centre for Student Development at Wits University.",
-    start_url: "/",
+    start_url: "/app",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

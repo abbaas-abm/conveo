@@ -33,7 +33,7 @@ export function PwaChrome() {
       (window.navigator as unknown as { standalone?: boolean }).standalone ===
         true;
     if (standalone && window.location.pathname === "/") {
-      router.replace("/user");
+      router.replace("/app");
     }
   }, [router]);
 
