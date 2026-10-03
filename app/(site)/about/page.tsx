@@ -70,9 +70,8 @@ export default function AboutPage() {
               A dynamic, innovative centre for student development
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              The Centre for Student Development is a unit within the Division
-              of Student Affairs at Wits University, integrating and enhancing
-              student development and support services.
+              The Centre for Student Development integrates and enhances student
+              development and support services.
             </p>
           </div>
 

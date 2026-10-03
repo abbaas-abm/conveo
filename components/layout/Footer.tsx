@@ -14,21 +14,17 @@ export function Footer() {
     <footer className="mt-auto border-t border-gray-200 bg-slate-50">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="lg:col-span-2">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/wits-logo-white.png"
-              alt="University of the Witwatersrand"
-              width={150}
-              height={42}
-              className="h-9 w-auto"
-            />
-            <span className="text-sm font-semibold text-primary">CSD</span>
-          </div>
+          <Image
+            src="/wits-logo-white.png"
+            alt="University of the Witwatersrand"
+            width={150}
+            height={42}
+            className="h-9 w-auto"
+          />
           <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-600">
-            The Centre for Student Development (CSD) is a unit within the
-            Division of Student Affairs at Wits University, integrating
-            leadership, civic engagement, governance and persistence support for
-            students across all faculties.
+            The Centre for Student Development (CSD) integrates leadership,
+            civic engagement, governance and persistence support for students
+            across all faculties.
           </p>
         </div>
 
@@ -61,15 +57,15 @@ export function Footer() {
             <li className="flex items-center gap-2.5">
               <Mail className="size-4 shrink-0 text-gray-400" />
               <a
-                href="mailto:studentaffairs@wits.ac.za"
+                href="mailto:ask.wits@wits.ac.za"
                 className="hover:text-primary"
               >
-                studentaffairs@wits.ac.za
+                ask.wits@wits.ac.za
               </a>
             </li>
             <li className="flex items-center gap-2.5">
               <Phone className="size-4 shrink-0 text-gray-400" />
-              <span>+27 (0)11 717 9100</span>
+              <span>+27 (0) 11 717 1888</span>
             </li>
             <li className="flex items-center gap-2.5">
               <Clock className="size-4 shrink-0 text-gray-400" />

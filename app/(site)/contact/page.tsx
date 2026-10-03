@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Card } from "@/components/ui/card";
-import { ContactForm } from "@/components/contact/ContactForm";
 
 export const metadata: Metadata = { title: "Contact" };
 export const revalidate = 3600;
@@ -20,14 +19,14 @@ const DETAILS = [
   {
     icon: Mail,
     label: "Email",
-    lines: ["studentaffairs@wits.ac.za"],
-    href: "mailto:studentaffairs@wits.ac.za",
+    lines: ["ask.wits@wits.ac.za"],
+    href: "mailto:ask.wits@wits.ac.za",
   },
   {
     icon: Phone,
-    label: "Office Contact",
-    lines: ["+27 (0)11 717 9100", "+27 (0)11 717 9234"],
-    href: "tel:+27117179100",
+    label: "Telephone",
+    lines: ["+27 (0) 11 717 1888"],
+    href: "tel:+27117171888",
   },
   {
     icon: Clock,
@@ -46,8 +45,8 @@ export default function ContactPage() {
       />
 
       <section className="bg-slate-50 py-16 sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[380px_1fr] lg:px-8">
-          <div className="space-y-5">
+        <div className="mx-auto max-w-4xl space-y-8 px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-5 sm:grid-cols-2">
             {DETAILS.map((detail) => {
               const Icon = detail.icon;
               const content = (
@@ -70,52 +69,37 @@ export default function ContactPage() {
 
               return detail.href ? (
                 <a key={detail.label} href={detail.href} className="block">
-                  <Card className="flex gap-4 border-gray-200 p-5 transition-colors hover:border-gray-300">
+                  <Card className="flex h-full gap-4 border-gray-200 p-5 transition-colors hover:border-gray-300">
                     {content}
                   </Card>
                 </a>
               ) : (
                 <Card
                   key={detail.label}
-                  className="flex gap-4 border-gray-200 p-5"
+                  className="flex h-full gap-4 border-gray-200 p-5"
                 >
                   {content}
                 </Card>
               );
             })}
-
-            <Card className="overflow-hidden border-gray-200 p-0">
-              <div className="relative h-52 w-full bg-slate-100">
-                <iframe
-                  title="CSD office location"
-                  className="h-full w-full"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=28.028%2C-26.194%2C28.042%2C-26.184&layer=mapnik&marker=-26.189%2C28.035"
-                />
-              </div>
-              <div className="border-t border-gray-200 p-4">
-                <p className="text-sm text-slate-600">
-                  Student Union Building (Matrix), Wits East Campus
-                </p>
-              </div>
-            </Card>
           </div>
 
-          <div>
-            <Card className="border-gray-200 p-6 sm:p-8">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Send us a message
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Complete the form below and the CSD team will respond
-                within two business days.
+          <Card className="overflow-hidden border-gray-200 p-0">
+            <div className="relative h-52 w-full bg-slate-100">
+              <iframe
+                title="CSD office location"
+                className="h-full w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=28.028%2C-26.194%2C28.042%2C-26.184&layer=mapnik&marker=-26.189%2C28.035"
+              />
+            </div>
+            <div className="border-t border-gray-200 p-4">
+              <p className="text-sm text-slate-600">
+                Student Union Building (Matrix), Wits East Campus
               </p>
-              <div className="mt-7">
-                <ContactForm />
-              </div>
-            </Card>
-          </div>
+            </div>
+          </Card>
         </div>
       </section>
     </>
