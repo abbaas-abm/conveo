@@ -11,7 +11,7 @@ const QUICK_LINKS = [
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-gray-200 bg-slate-50">
+    <footer className="mt-auto border-t border-gray-200 bg-slate-50 pwa:hidden">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="lg:col-span-2">
           <Image

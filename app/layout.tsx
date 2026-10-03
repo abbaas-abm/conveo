@@ -49,9 +49,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={`${poppins.variable} ${robotoMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-white">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){document.documentElement.setAttribute('data-pwa','true');}}catch(e){}})();`,
+          }}
+        />
         <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
         <Toaster />
         <InstallAppButton />

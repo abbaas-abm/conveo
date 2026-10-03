@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant pwa (&:where([data-pwa="true"] *));
 @plugin "@tailwindcss/typography";
 
 :root {

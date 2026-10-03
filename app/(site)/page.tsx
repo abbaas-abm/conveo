@@ -10,7 +10,7 @@ export const revalidate = 60;
 
 export default function HomePage() {
   return (
-    <>
+    <div className="pwa:hidden">
       <Hero />
       <Suspense
         fallback={
@@ -39,6 +39,6 @@ export default function HomePage() {
       >
         <UpcomingEvents />
       </Suspense>
-    </>
+    </div>
   );
 }
