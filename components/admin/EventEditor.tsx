@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Eye, Loader2, Save } from "lucide-react";
+import { ArrowLeft, ChevronDown, Eye, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateEvents } from "@/lib/cache-actions";
 import { cn, formatDate } from "@/lib/utils";
@@ -30,6 +36,7 @@ import { EventRegistrationsTab } from "@/components/admin/EventRegistrationsTab"
 import { EventFeedbackTab } from "@/components/admin/EventFeedbackTab";
 import { EventAttendanceTab } from "@/components/admin/EventAttendanceTab";
 import { EventAnnouncementsTab } from "@/components/admin/EventAnnouncementsTab";
+import { EventFeaturedTab } from "@/components/admin/EventFeaturedTab";
 
 const TABS = [
   "Information",
@@ -44,7 +51,12 @@ const TABS = [
   "Preferences",
 ] as const;
 
-type Tab = (typeof TABS)[number];
+// Secondary tabs revealed by the "More" dropdown next to Preferences.
+const MORE_TABS = ["Featured"] as const;
+
+type Tab = (typeof TABS)[number] | (typeof MORE_TABS)[number];
+
+const ALL_TABS: readonly Tab[] = [...TABS, ...MORE_TABS];
 
 const MODES: EventMode[] = ["IN_PERSON", "ONLINE"];
 const STATUSES: EventStatus[] = ["OPEN", "CLOSED", "ENDED"];
@@ -90,7 +102,7 @@ export function EventEditor({
   initialTab?: string;
 }) {
   const [tab, setTab] = React.useState<Tab>(() =>
-    initialTab && (TABS as readonly string[]).includes(initialTab)
+    initialTab && (ALL_TABS as readonly string[]).includes(initialTab)
       ? (initialTab as Tab)
       : "Information",
   );
@@ -102,6 +114,7 @@ export function EventEditor({
     has_programme: event.has_programme,
     has_speakers: event.has_speakers,
     has_media: event.has_media,
+    has_featured: event.has_featured,
   });
 
   const visibilityByTab: Partial<Record<Tab, keyof typeof visibility>> = {
@@ -110,6 +123,7 @@ export function EventEditor({
     Programme: "has_programme",
     Speakers: "has_speakers",
     Media: "has_media",
+    Featured: "has_featured",
   };
   const activeVisibilityKey = visibilityByTab[tab];
 
@@ -295,6 +309,30 @@ export function EventEditor({
               {item}
             </button>
           ))}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "relative inline-flex items-center gap-1 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors",
+                  (MORE_TABS as readonly string[]).includes(tab)
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:text-gray-900",
+                )}
+              >
+                More
+                <ChevronDown className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {MORE_TABS.map((item) => (
+                <DropdownMenuItem key={item} onSelect={() => selectTab(item)}>
+                  {item}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
       </div>
 
@@ -543,6 +581,8 @@ export function EventEditor({
               ))}
             </Card>
           </div>
+        ) : tab === "Featured" ? (
+          <EventFeaturedTab event={event} />
         ) : null}
       </div>
     </div>

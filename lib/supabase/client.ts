@@ -1,5 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { getSupabaseEnv } from "@/lib/supabase/env";
+import { getSupabaseEnv, AUTH_COOKIE_MAX_AGE } from "@/lib/supabase/env";
 
 export function createClient() {
   const { url, key } = getSupabaseEnv();
@@ -10,5 +10,7 @@ export function createClient() {
     );
   }
 
-  return createBrowserClient(url, key);
+  return createBrowserClient(url, key, {
+    cookieOptions: { maxAge: AUTH_COOKIE_MAX_AGE },
+  });
 }

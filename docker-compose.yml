@@ -14,6 +14,9 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379
+      # Keep V8's heap below the container limit so it GCs instead of being
+      # OOM-killed (which shows up to nginx as an intermittent 502).
+      - NODE_OPTIONS=--max-old-space-size=1536
     # Published to localhost only; nginx on the host proxies to it.
     ports:
       - "127.0.0.1:3000:3000"
@@ -24,8 +27,16 @@ services:
         condition: service_healthy
     # Pin the web process to core 0 so PDF work on core 1 never stalls SSR.
     cpuset: "0"
-    mem_limit: 2g
+    mem_limit: 3g
+    # Run as PID 1 properly and give in-flight requests time to finish.
+    init: true
+    stop_grace_period: 30s
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 20s
@@ -43,13 +54,21 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379
+      - NODE_OPTIONS=--max-old-space-size=1024
     depends_on:
       redis:
         condition: service_healthy
     # Dedicated core for pdf-lib + QR generation + Plunk delivery.
     cpuset: "1"
     mem_limit: 2g
+    init: true
+    stop_grace_period: 30s
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine

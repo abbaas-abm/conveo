@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { getSupabaseEnv } from "@/lib/supabase/env";
+import { getSupabaseEnv, AUTH_COOKIE_MAX_AGE } from "@/lib/supabase/env";
 
 const PROTECTED_PREFIXES = ["/user", "/onboarding"];
 const AUTH_ROUTES = ["/login", "/register"];
@@ -13,6 +13,7 @@ export async function updateSession(request: NextRequest) {
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
+    cookieOptions: { maxAge: AUTH_COOKIE_MAX_AGE },
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -8,3 +8,9 @@ export function getSupabaseEnv() {
 
   return { url, key };
 }
+
+// Keep auth cookies in the browser for as long as possible (~13 months). The
+// access token is still refreshed automatically; this only controls how long
+// the session cookie itself persists between visits.
+export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 400;
+

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getSupabaseEnv } from "@/lib/supabase/env";
+import { getSupabaseEnv, AUTH_COOKIE_MAX_AGE } from "@/lib/supabase/env";
 
 export async function createClient() {
   const { url, key } = getSupabaseEnv();
@@ -10,6 +10,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, key, {
+    cookieOptions: { maxAge: AUTH_COOKIE_MAX_AGE },
     cookies: {
       getAll() {
         return cookieStore.getAll();

@@ -4,6 +4,7 @@ import { createAnonClient } from "@/lib/supabase/anon";
 import type {
   EventRecord,
   EventGalleryImage,
+  EventFeatured,
   Announcement,
   AnnouncementWithEvent,
   ReflectionWithUser,
@@ -234,6 +235,24 @@ export async function getEventAnnouncements(
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []) as Announcement[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getEventFeatured(
+  eventId: string,
+): Promise<EventFeatured[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("event_featured")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as EventFeatured[];
   } catch {
     return [];
   }

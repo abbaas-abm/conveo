@@ -56,6 +56,17 @@ export interface EventRecord {
   has_pledges: boolean;
   has_reflections: boolean;
   has_feedback: boolean;
+  has_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventFeatured {
+  id: string;
+  event_id: string;
+  title: string;
+  description: string | null;
+  image_url: string;
   created_at: string;
   updated_at: string;
 }

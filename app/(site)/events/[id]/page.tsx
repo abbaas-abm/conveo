@@ -18,10 +18,11 @@ import { EventCountdown } from "@/components/events/EventCountdown";
 import { ExpandableSection } from "@/components/events/ExpandableSection";
 import { EventProgramme } from "@/components/events/EventProgramme";
 import { EventSpeakers } from "@/components/events/EventSpeakers";
+import { EventFeatured } from "@/components/events/EventFeatured";
 import { EventAnnouncementsButton } from "@/components/events/EventAnnouncementsButton";
 import { SectionPlaceholder } from "@/components/events/SectionPlaceholder";
 import { getCurrentUser } from "@/lib/auth";
-import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements } from "@/lib/data";
+import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements, getEventFeatured } from "@/lib/data";
 import { formatDate, formatTime, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
@@ -39,12 +40,14 @@ export default async function EventDetailPage(
     program,
     eventSpeakers,
     announcements,
+    featured,
     { supabase, user, profile },
   ] = await Promise.all([
     getEventById(id),
     getEventProgram(id),
     getSpeakersByEvent(id),
     getEventAnnouncements(id),
+    getEventFeatured(id),
     getCurrentUser(),
   ]);
 
@@ -62,6 +65,9 @@ export default async function EventDetailPage(
   }
 
   const eventOpen = event.status === "OPEN";
+  // Attendee-only actions (reflections, pledges, feedback) require a confirmed
+  // registration for this event, regardless of the event's preferences.
+  const isRegistered = myStatus === "CONFIRMED";
   const speakers = Array.from(
     new Map(
       [...eventSpeakers, ...program.flatMap((block) => block.speakers)].map(
@@ -157,6 +163,15 @@ export default async function EventDetailPage(
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6 lg:order-1">
+            {event.has_featured && featured.length > 0 ? (
+              <EventFeatured items={featured} />
+            ) : (
+              <SectionPlaceholder
+                title="Featured"
+                message="The event organizers are still working on this."
+              />
+            )}
+
             {event.has_about ? (
             <Card className="border-gray-200 p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -291,7 +306,7 @@ export default async function EventDetailPage(
                   </p>
                 )}
 
-                {event.has_reflections && (
+                {event.has_reflections && isRegistered && (
                   <Button
                     asChild
                     variant="outline"
@@ -313,7 +328,7 @@ export default async function EventDetailPage(
                   </Button>
                 )}
 
-                {event.has_pledges && (
+                {event.has_pledges && isRegistered && (
                   <Button
                     asChild
                     variant="outline"
@@ -335,7 +350,7 @@ export default async function EventDetailPage(
                   </Button>
                 )}
 
-                {event.has_feedback && (
+                {event.has_feedback && isRegistered && (
                   <Button
                     asChild
                     variant="outline"
