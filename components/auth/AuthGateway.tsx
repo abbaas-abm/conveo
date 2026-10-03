@@ -164,7 +164,19 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="relative grid min-h-screen lg:grid-cols-2">
+      <div className="pointer-events-none fixed inset-0 hidden pwa:block">
+        <Image
+          src="/wits-hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-primary/85" />
+      </div>
+
       <aside className="relative hidden flex-col justify-between bg-primary p-10 text-white lg:flex">
         <Image
           src="/slc-logo.png"
@@ -189,7 +201,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
         </p>
       </aside>
 
-      <div className="flex flex-col">
+      <div className="relative z-10 flex flex-col">
         <div className="flex items-center justify-center bg-primary px-6 py-5 lg:hidden">
           <Image
             src="/slc-logo.png"
@@ -206,10 +218,10 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
             {step === "email" ? (
               <div key="email" className="animate-in fade-in duration-300">
                 <div className="space-y-1.5">
-                  <h1 className="text-2xl font-semibold tracking-tight">
+                  <h1 className="text-2xl font-semibold tracking-tight pwa:text-white">
                     Sign in or create your account
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground pwa:text-white/80">
                     Enter your email. We will send you a one-time code, so no
                     password is needed.
                   </p>
@@ -241,7 +253,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
 
                   <Button
                     type="submit"
-                    className="h-11 w-full"
+                    className="h-11 w-full pwa:bg-white pwa:text-primary pwa:hover:bg-slate-100"
                     disabled={sending}
                   >
                     {sending && (
@@ -251,7 +263,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                   </Button>
                 </form>
 
-                <p className="mt-6 text-center text-xs text-muted-foreground">
+                <p className="mt-6 text-center text-xs text-muted-foreground pwa:text-white/60">
                   By continuing you agree to Wits University&apos;s policies and
                   terms of use.
                 </p>
@@ -259,13 +271,15 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
             ) : (
               <div key="otp" className="animate-in fade-in duration-300">
                 <div className="space-y-1.5">
-                  <h1 className="text-2xl font-semibold tracking-tight">
+                  <h1 className="text-2xl font-semibold tracking-tight pwa:text-white">
                     Enter your verification code
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground pwa:text-white/80">
                     We sent a 6-digit code to{" "}
-                    <span className="font-medium text-foreground">{email}</span>.
-                    It expires in 10 minutes.
+                    <span className="font-medium text-foreground pwa:text-white">
+                      {email}
+                    </span>
+                    . It expires in 10 minutes.
                   </p>
                 </div>
 
@@ -279,7 +293,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                 </div>
 
                 <Button
-                  className="mt-5 h-11 w-full"
+                  className="mt-5 h-11 w-full pwa:bg-white pwa:text-primary pwa:hover:bg-slate-100"
                   onClick={() => verify(otp)}
                   disabled={verifying || otp.length !== 6}
                 >
@@ -297,7 +311,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                       setStep("email");
                       setOtp("");
                     }}
-                    className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground pwa:text-white/80 pwa:hover:text-white"
                   >
                     <ArrowLeft className="size-4" />
                     Change email
@@ -306,7 +320,7 @@ export function AuthGateway({ redirectTo }: { redirectTo?: string }) {
                     type="button"
                     onClick={handleResend}
                     disabled={cooldown > 0 || resending}
-                    className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                    className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50 pwa:text-white pwa:hover:text-white"
                   >
                     {resending
                       ? "Resending..."
