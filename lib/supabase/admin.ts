@@ -17,3 +17,16 @@ export function createAdminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+/**
+ * Returns an admin client, or `null` if the service-role key isn't configured.
+ * Useful for the inline delivery fallback so badge/pledge/report uploads still
+ * work when the Redis worker isn't available.
+ */
+export function tryCreateAdminClient() {
+  try {
+    return createAdminClient();
+  } catch {
+    return null;
+  }
+}

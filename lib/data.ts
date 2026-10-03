@@ -361,6 +361,28 @@ export const getCachedFeaturedEvent = unstable_cache(
   { revalidate: 60, tags: ["events"] },
 );
 
+export const getCachedLatestEvent = unstable_cache(
+  async (): Promise<EventRecord | null> => {
+    const supabase = createAnonClient();
+    if (!supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .neq("status", "ENDED")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as unknown as EventRecord) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  ["public-latest-event"],
+  { revalidate: 60, tags: ["events"] },
+);
+
 export const getCachedRecentAnnouncements = unstable_cache(
   async (limit = 5): Promise<AnnouncementWithEvent[]> => {
     const supabase = createAnonClient();

@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverPledgeDocument } from "@/lib/email/pledge";
 import { enqueue } from "@/lib/queue";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -63,7 +64,8 @@ export async function POST(request: Request) {
   // back to inline delivery if Redis is unavailable.
   const queued = await enqueue("pledges", "send-pledge", { pledgeId });
   if (!queued) {
-    after(() => deliverPledgeDocument({ supabase, pledgeId }));
+    const deliveryClient = tryCreateAdminClient() ?? supabase;
+    after(() => deliverPledgeDocument({ supabase: deliveryClient, pledgeId }));
   }
 
   return NextResponse.json({ ok: true, pledgeId });

@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverRegistrationEmail } from "@/lib/email/registration";
 import { enqueue } from "@/lib/queue";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
 import type { UserPosition } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -107,8 +108,13 @@ export async function POST(request: Request) {
       });
 
       if (!queued) {
+        const deliveryClient = tryCreateAdminClient() ?? supabase;
         after(() =>
-          deliverRegistrationEmail({ supabase, registrationId, data: emailData }),
+          deliverRegistrationEmail({
+            supabase: deliveryClient,
+            registrationId,
+            data: emailData,
+          }),
         );
       }
     }

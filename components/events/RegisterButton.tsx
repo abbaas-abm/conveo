@@ -123,6 +123,12 @@ export function RegisterButton({
       setStatus("CONFIRMED");
       setDialogOpen(false);
       toast.success("Attendance successfully marked.");
+      // Let the site-wide event bar know to hide itself for this event.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("csd:registered", { detail: { eventId } }),
+        );
+      }
       router.refresh();
     } catch (error) {
       console.error(error);

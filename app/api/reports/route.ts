@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deliverEventReport } from "@/lib/email/report";
 import { enqueue } from "@/lib/queue";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -54,7 +55,10 @@ export async function POST(request: Request) {
   // delivery if Redis is unavailable.
   const queued = await enqueue("reports", "send-report", { eventId, to: email });
   if (!queued) {
-    after(() => deliverEventReport({ supabase, to: email, eventId }));
+    const deliveryClient = tryCreateAdminClient() ?? supabase;
+    after(() =>
+      deliverEventReport({ supabase: deliveryClient, to: email, eventId }),
+    );
   }
 
   return NextResponse.json({ ok: true });
