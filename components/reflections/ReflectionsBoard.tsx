@@ -57,34 +57,44 @@ export function ReflectionsBoard({
     eventId ? `/reflections?event=${eventId}` : "/reflections",
   )}`;
 
+  // Poll for new reflections in the background (no realtime). The poster's own
+  // note is added optimistically in `post()`, so it shows instantly for them.
   React.useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase.channel(`reflections:${eventId ?? "all"}`);
-    channel.on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "reflections",
-        ...(eventId ? { filter: `event_id=eq.${eventId}` } : {}),
-      },
-      async (payload) => {
-        const row = payload.new as Reflection;
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("first_name,last_name")
-          .eq("id", row.user_id ?? "")
-          .maybeSingle();
-        setNotes((prev) =>
-          prev.some((n) => n.id === row.id)
-            ? prev
-            : [{ ...row, user: profile ?? null }, ...prev],
-        );
-      },
-    );
-    channel.subscribe();
+    let active = true;
+
+    async function fetchLatest() {
+      if (typeof document !== "undefined" && document.hidden) return;
+      try {
+        const supabase = createClient();
+        let query = supabase
+          .from("reflections")
+          .select("*, user:profiles!user_id(first_name,last_name)")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (eventId) query = query.eq("event_id", eventId);
+        const { data } = await query;
+        if (!active || !data) return;
+        setNotes((prev) => {
+          const map = new Map<string, ReflectionWithUser>();
+          for (const row of data as unknown as ReflectionWithUser[]) {
+            map.set(row.id, row);
+          }
+          for (const row of prev) {
+            if (!map.has(row.id)) map.set(row.id, row);
+          }
+          return Array.from(map.values()).sort((a, b) =>
+            b.created_at.localeCompare(a.created_at),
+          );
+        });
+      } catch {
+        // Ignore transient polling errors.
+      }
+    }
+
+    const id = setInterval(fetchLatest, 10_000);
     return () => {
-      void supabase.removeChannel(channel);
+      active = false;
+      clearInterval(id);
     };
   }, [eventId]);
 
@@ -155,7 +165,7 @@ export function ReflectionsBoard({
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/75">
             Share a thought, a takeaway or a moment from the event. Your note
-            appears on the wall instantly for everyone.
+            appears on the wall right away.
           </p>
         </div>
       </header>

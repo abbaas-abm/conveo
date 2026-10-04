@@ -5,8 +5,11 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  FileSignature,
   ImageOff,
   MapPin,
+  MessageSquare,
+  Star,
   Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -402,6 +405,40 @@ export default async function EventDetailPage(
                 )}
               </div>
             </Card>
+
+            {isRegistered &&
+              (event.has_reflections ||
+                event.has_pledges ||
+                event.has_feedback) && (
+                <Card className="border-gray-200 p-5 lg:hidden">
+                  <h2 className="text-sm font-semibold text-gray-900">
+                    Actions
+                  </h2>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {event.has_reflections && (
+                      <ActionButton
+                        href={`/reflections?event=${event.id}`}
+                        icon={MessageSquare}
+                        label="Reflections"
+                      />
+                    )}
+                    {event.has_pledges && (
+                      <ActionButton
+                        href={`/pledges/${event.id}`}
+                        icon={FileSignature}
+                        label="Pledge"
+                      />
+                    )}
+                    {event.has_feedback && (
+                      <ActionButton
+                        href={`/feedback/${event.id}`}
+                        icon={Star}
+                        label="Feedback"
+                      />
+                    )}
+                  </div>
+                </Card>
+              )}
           </aside>
         </div>
       </div>
@@ -423,6 +460,29 @@ export default async function EventDetailPage(
         />
       )}
     </div>
+  );
+}
+
+function ActionButton({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <Button
+      asChild
+      variant="outline"
+      className="flex h-auto w-full flex-col items-center gap-2 rounded-lg py-3.5 text-xs font-medium"
+    >
+      <Link href={href}>
+        <Icon className="size-5 text-primary" />
+        {label}
+      </Link>
+    </Button>
   );
 }
 
