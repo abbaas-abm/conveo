@@ -383,6 +383,126 @@ export const getCachedLatestEvent = unstable_cache(
   { revalidate: 60, tags: ["events"] },
 );
 
+// ---------------------------------------------------------------------------
+// Cacheable per-event reads (public event detail page)
+//
+// The page itself stays dynamic so the registration/action block reflects the
+// signed-in visitor, but the heavy content below is cached and shared across
+// visitors. Invalidate with revalidateTag("events") after admin edits.
+// ---------------------------------------------------------------------------
+
+export const getCachedEventById = unstable_cache(
+  async (id: string): Promise<EventRecord | null> => {
+    const supabase = createAnonClient();
+    if (!supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as unknown as EventRecord) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  ["public-event-by-id"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getCachedEventProgram = unstable_cache(
+  async (eventId: string): Promise<ProgramBlockWithSpeakers[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("event_program_blocks")
+        .select("*, event_program_block_speakers(speaker:speakers(*))")
+        .eq("event_id", eventId)
+        .order("day_number", { ascending: true })
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      const blocks = (data ?? []) as unknown as Array<
+        ProgramBlock & {
+          event_program_block_speakers?: Array<{ speaker: Speaker }>;
+        }
+      >;
+      return blocks.map(({ event_program_block_speakers, ...block }) => ({
+        ...block,
+        speakers: (event_program_block_speakers ?? [])
+          .map((entry) => entry.speaker)
+          .filter(Boolean),
+      })) as ProgramBlockWithSpeakers[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-event-program"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getCachedSpeakersByEvent = unstable_cache(
+  async (eventId: string): Promise<Speaker[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("speakers")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("speaker_order", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Speaker[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-event-speakers"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getCachedEventAnnouncements = unstable_cache(
+  async (eventId: string): Promise<Announcement[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Announcement[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-event-announcements"],
+  { revalidate: 30, tags: ["events"] },
+);
+
+export const getCachedEventFeatured = unstable_cache(
+  async (eventId: string): Promise<EventFeatured[]> => {
+    const supabase = createAnonClient();
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from("event_featured")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as EventFeatured[];
+    } catch {
+      return [];
+    }
+  },
+  ["public-event-featured"],
+  { revalidate: 60, tags: ["events"] },
+);
+
 export const getCachedRecentAnnouncements = unstable_cache(
   async (limit = 5): Promise<AnnouncementWithEvent[]> => {
     const supabase = createAnonClient();

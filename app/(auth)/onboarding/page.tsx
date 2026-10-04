@@ -28,6 +28,8 @@ export default async function OnboardingPage() {
       faculty: null,
       course_of_study: null,
       year_of_study: null,
+      place_of_residence: null,
+      university_res: null,
       onboarding: "PERSONAL_DETAILS",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

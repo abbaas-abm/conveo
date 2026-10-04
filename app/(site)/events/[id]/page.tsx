@@ -19,10 +19,17 @@ import { ExpandableSection } from "@/components/events/ExpandableSection";
 import { EventProgramme } from "@/components/events/EventProgramme";
 import { EventSpeakers } from "@/components/events/EventSpeakers";
 import { EventFeatured } from "@/components/events/EventFeatured";
+import { EventSideTabs } from "@/components/events/EventSideTabs";
 import { EventAnnouncementsButton } from "@/components/events/EventAnnouncementsButton";
 import { SectionPlaceholder } from "@/components/events/SectionPlaceholder";
 import { getCurrentUser } from "@/lib/auth";
-import { getEventById, getEventProgram, getSpeakersByEvent, getEventAnnouncements, getEventFeatured } from "@/lib/data";
+import {
+  getCachedEventById,
+  getCachedEventProgram,
+  getCachedSpeakersByEvent,
+  getCachedEventAnnouncements,
+  getCachedEventFeatured,
+} from "@/lib/data";
 import { formatDate, formatTime, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
@@ -43,11 +50,11 @@ export default async function EventDetailPage(
     featured,
     { supabase, user, profile },
   ] = await Promise.all([
-    getEventById(id),
-    getEventProgram(id),
-    getSpeakersByEvent(id),
-    getEventAnnouncements(id),
-    getEventFeatured(id),
+    getCachedEventById(id),
+    getCachedEventProgram(id),
+    getCachedSpeakersByEvent(id),
+    getCachedEventAnnouncements(id),
+    getCachedEventFeatured(id),
     getCurrentUser(),
   ]);
 
@@ -81,9 +88,91 @@ export default async function EventDetailPage(
     return a.created_at.localeCompare(b.created_at);
   });
 
+  // Section content, rendered both in the page column and inside the fixed
+  // side-tab panel.
+  const featuredSection =
+    event.has_featured && featured.length > 0 ? (
+      <EventFeatured items={featured} />
+    ) : (
+      <SectionPlaceholder
+        title="Featured"
+        message="The event organizers are still working on this."
+      />
+    );
+
+  const aboutSection = event.has_about ? (
+    <Card className="border-gray-200 p-6 sm:p-8">
+      <h2 className="text-xl font-semibold text-gray-900">About this event</h2>
+      {event.description || event.about ? (
+        <ExpandableSection
+          enabled={
+            (event.description?.length ?? 0) +
+              richTextToPlain(event.about).length >
+            400
+          }
+        >
+          {event.description && (
+            <p className="mt-4 text-base leading-relaxed text-gray-600">
+              {event.description}
+            </p>
+          )}
+          {event.about &&
+            (hasMarkup(event.about) ? (
+              <div
+                className="prose prose-slate mt-5 max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(event.about),
+                }}
+              />
+            ) : (
+              <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-600">
+                {event.about}
+              </p>
+            ))}
+        </ExpandableSection>
+      ) : (
+        <p className="mt-4 text-sm text-gray-500">
+          Full event details will be published shortly.
+        </p>
+      )}
+    </Card>
+  ) : (
+    <SectionPlaceholder title="About this event" />
+  );
+
+  const programmeSection = event.has_programme ? (
+    <Card className="border-gray-200 p-6 sm:p-8">
+      <h2 className="text-xl font-semibold text-gray-900">
+        Programme &amp; agenda
+      </h2>
+      {program.length === 0 ? (
+        <p className="mt-4 text-sm text-gray-500">
+          The programme for this event is being finalised.
+        </p>
+      ) : (
+        <EventProgramme program={program} isAuthenticated={Boolean(user)} />
+      )}
+    </Card>
+  ) : (
+    <SectionPlaceholder title="Programme &amp; agenda" />
+  );
+
+  const speakersSection = !event.has_speakers ? (
+    <SectionPlaceholder title="Speakers &amp; facilitators" />
+  ) : speakers.length > 0 ? (
+    <EventSpeakers speakers={speakers} />
+  ) : null;
+
   return (
     <div className="w-full overflow-x-hidden bg-white pb-16">
       <EventAnnouncementsButton announcements={announcements} />
+      {event.has_information && (
+        <EventCountdown
+          initialSeconds={secondsUntil(event.start_date)}
+          compact
+          className="lg:hidden"
+        />
+      )}
       <section className="w-full bg-slate-100">
         <div className="relative mx-auto aspect-[5/2] max-h-[560px] w-full overflow-hidden">
           {event.has_media && event.cover_image_url ? (
@@ -163,89 +252,19 @@ export default async function EventDetailPage(
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6 lg:order-1">
-            {event.has_featured && featured.length > 0 ? (
-              <EventFeatured items={featured} />
-            ) : (
-              <SectionPlaceholder
-                title="Featured"
-                message="The event organizers are still working on this."
-              />
-            )}
-
-            {event.has_about ? (
-            <Card className="border-gray-200 p-6 sm:p-8">
-              <h2 className="text-xl font-semibold text-gray-900">
-                About this event
-              </h2>
-              {event.description || event.about ? (
-                <ExpandableSection
-                  enabled={
-                    (event.description?.length ?? 0) +
-                      richTextToPlain(event.about).length >
-                    400
-                  }
-                >
-                  {event.description && (
-                    <p className="mt-4 text-base leading-relaxed text-gray-600">
-                      {event.description}
-                    </p>
-                  )}
-                  {event.about &&
-                    (hasMarkup(event.about) ? (
-                      <div
-                        className="prose prose-slate mt-5 max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeHtml(event.about),
-                        }}
-                      />
-                    ) : (
-                      <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-600">
-                        {event.about}
-                      </p>
-                    ))}
-                </ExpandableSection>
-              ) : (
-                <p className="mt-4 text-sm text-gray-500">
-                  Full event details will be published shortly.
-                </p>
-              )}
-            </Card>
-            ) : (
-              <SectionPlaceholder title="About this event" />
-            )}
-
-            {event.has_programme ? (
-            <Card className="border-gray-200 p-6 sm:p-8">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Programme &amp; agenda
-              </h2>
-              {program.length === 0 ? (
-                <p className="mt-4 text-sm text-gray-500">
-                  The programme for this event is being finalised.
-                </p>
-              ) : (
-                <EventProgramme
-                  program={program}
-                  isAuthenticated={Boolean(user)}
-                />
-              )}
-            </Card>
-            ) : (
-              <SectionPlaceholder title="Programme &amp; agenda" />
-            )}
-
-            {!event.has_speakers ? (
-              <SectionPlaceholder title="Speakers &amp; facilitators" />
-            ) : speakers.length > 0 ? (
-              <EventSpeakers speakers={speakers} />
-            ) : null}
+            {featuredSection}
+            {aboutSection}
+            {programmeSection}
+            {speakersSection}
           </div>
 
           <aside className="order-first min-w-0 space-y-6 lg:order-2 lg:sticky lg:top-20 lg:h-fit">
             {event.has_information && (
-              <EventCountdown
-                initialSeconds={secondsUntil(event.start_date)}
-              />
+              <div className="hidden lg:block">
+                <EventCountdown
+                  initialSeconds={secondsUntil(event.start_date)}
+                />
+              </div>
             )}
             <Card className="border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -368,6 +387,23 @@ export default async function EventDetailPage(
           </aside>
         </div>
       </div>
+
+      {event.has_side_notch && (
+        <EventSideTabs
+          enabled={{
+            about: event.has_about,
+            programme: event.has_programme,
+            speakers: event.has_speakers,
+            featured: event.has_featured,
+          }}
+          about={{ description: event.description, about: event.about }}
+          program={program}
+          speakers={speakers}
+          featured={featured}
+          isAuthenticated={Boolean(user)}
+          eventId={event.id}
+        />
+      )}
     </div>
   );
 }

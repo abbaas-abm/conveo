@@ -28,6 +28,8 @@ export interface Profile {
   faculty: string | null;
   course_of_study: string | null;
   year_of_study: string | null;
+  place_of_residence: string | null;
+  university_res: string | null;
   onboarding: OnboardingStep;
   created_at: string;
   updated_at: string;
@@ -57,6 +59,7 @@ export interface EventRecord {
   has_reflections: boolean;
   has_feedback: boolean;
   has_featured: boolean;
+  has_side_notch: boolean;
   created_at: string;
   updated_at: string;
 }

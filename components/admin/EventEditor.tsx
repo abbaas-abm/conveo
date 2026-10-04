@@ -131,6 +131,7 @@ export function EventEditor({
     has_pledges: event.has_pledges,
     has_reflections: event.has_reflections,
     has_feedback: event.has_feedback,
+    has_side_notch: event.has_side_notch,
   });
   const [preferenceStatus, setPreferenceStatus] = React.useState<EventStatus>(
     event.status,
@@ -555,6 +556,12 @@ export function EventEditor({
                     key: "has_feedback" as const,
                     label: "Feedback",
                     description: "Allow attendees to submit event feedback.",
+                  },
+                  {
+                    key: "has_side_notch" as const,
+                    label: "Side notch",
+                    description:
+                      "Show the fixed side tabs (About, Programme, Speakers, Featured) on the event page.",
                   },
                 ]
               ).map((preference) => (

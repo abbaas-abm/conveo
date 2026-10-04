@@ -21,6 +21,9 @@ import { cn } from "@/lib/utils";
 import {
   FACULTY_OPTIONS,
   GENDER_OPTIONS,
+  RESIDENCE_OPTIONS,
+  WITS_RESIDENCE_OPTION,
+  WITS_RESIDENCE_OPTIONS,
   YEAR_OPTIONS,
 } from "@/lib/profile-options";
 import type { Profile, UserPosition } from "@/lib/types";
@@ -35,6 +38,8 @@ type Values = {
   faculty: string;
   course_of_study: string;
   year_of_study: string;
+  place_of_residence: string;
+  university_res: string;
 };
 
 type QuestionKey = keyof Values;
@@ -77,7 +82,10 @@ const PERSONAL_QUESTIONS: Question[] = [
   },
 ];
 
-function academicQuestions(position: UserPosition | ""): Question[] {
+function academicQuestions(
+  position: UserPosition | "",
+  placeOfResidence: string,
+): Question[] {
   const base: Question[] = [
     {
       key: "position",
@@ -102,7 +110,7 @@ function academicQuestions(position: UserPosition | ""): Question[] {
     ];
   }
 
-  return [
+  const studentQuestions: Question[] = [
     ...base,
     {
       key: "person_number",
@@ -128,7 +136,24 @@ function academicQuestions(position: UserPosition | ""): Question[] {
       type: "select",
       options: YEAR_OPTIONS,
     },
+    {
+      key: "place_of_residence",
+      question: "What is your current place of residence?",
+      type: "select",
+      options: RESIDENCE_OPTIONS,
+    },
   ];
+
+  if (placeOfResidence === WITS_RESIDENCE_OPTION) {
+    studentQuestions.push({
+      key: "university_res",
+      question: "Which Wits University residence do you currently live in?",
+      type: "select",
+      options: WITS_RESIDENCE_OPTIONS,
+    });
+  }
+
+  return studentQuestions;
 }
 
 export function OnboardingFlow({ profile }: { profile: Profile }) {
@@ -148,26 +173,29 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
     faculty: profile.faculty ?? "",
     course_of_study: profile.course_of_study ?? "",
     year_of_study: profile.year_of_study ?? "",
+    place_of_residence: profile.place_of_residence ?? "",
+    university_res: profile.university_res ?? "",
   });
 
   const questions =
     phase === "PERSONAL"
       ? PERSONAL_QUESTIONS
-      : academicQuestions(values.position);
+      : academicQuestions(values.position, values.place_of_residence);
 
   const totalEstimate =
     PERSONAL_QUESTIONS.length +
-    academicQuestions(values.position || "STUDENT").length;
+    academicQuestions(values.position || "STUDENT", values.place_of_residence)
+      .length;
 
   const completed =
     phase === "PERSONAL" ? index : PERSONAL_QUESTIONS.length + index;
   const progress = Math.round((completed / totalEstimate) * 100);
 
-  const question = questions[index];
+  const question = questions[Math.min(index, questions.length - 1)];
   const isLast =
     phase === "PERSONAL"
       ? index === PERSONAL_QUESTIONS.length - 1
-      : index === questions.length - 1;
+      : index >= questions.length - 1;
 
   const currentValue = values[question?.key ?? "first_name"];
 
@@ -230,6 +258,13 @@ export function OnboardingFlow({ profile }: { profile: Profile }) {
           ? values.course_of_study.trim() || null
           : null,
         year_of_study: isStudent ? values.year_of_study || null : null,
+        place_of_residence: isStudent
+          ? values.place_of_residence || null
+          : null,
+        university_res:
+          isStudent && values.place_of_residence === WITS_RESIDENCE_OPTION
+            ? values.university_res || null
+            : null,
         onboarding: "DONE",
       },
       { onConflict: "id" },

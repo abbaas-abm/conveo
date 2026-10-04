@@ -1,13 +1,16 @@
 "use client";
 
 import * as React from "react";
+import { Clock } from "lucide-react";
 import { cn, splitDuration } from "@/lib/utils";
 
 export function EventCountdown({
   initialSeconds,
+  compact = false,
   className,
 }: {
   initialSeconds: number;
+  compact?: boolean;
   className?: string;
 }) {
   const [seconds, setSeconds] = React.useState(initialSeconds);
@@ -18,6 +21,35 @@ export function EventCountdown({
     }, 1000);
     return () => clearInterval(id);
   }, []);
+
+  const { days, hours, minutes, seconds: secs } = splitDuration(seconds);
+  const label =
+    days > 0
+      ? `${days}d ${hours}h ${minutes}m ${secs}s`
+      : hours > 0
+        ? `${hours}h ${minutes}m ${secs}s`
+        : `${minutes}m ${secs}s`;
+
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "flex w-full items-center justify-center gap-1.5 bg-primary/95 px-4 py-2 text-xs font-semibold text-white shadow-sm backdrop-blur-sm",
+          className,
+        )}
+      >
+        <Clock className="size-3.5 text-[#d9b45b]" />
+        {seconds <= 0 ? (
+          <span>Happening now</span>
+        ) : (
+          <>
+            <span className="text-white/80">Starts in</span>
+            <span className="tabular-nums">{label}</span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (seconds <= 0) {
     return (
@@ -35,7 +67,6 @@ export function EventCountdown({
     );
   }
 
-  const { days, hours, minutes, seconds: secs } = splitDuration(seconds);
   const units = [
     { label: "Days", value: days },
     { label: "Hours", value: hours },
