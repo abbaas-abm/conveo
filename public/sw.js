@@ -24,8 +24,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Centre for Student Development";
   const options = {
     body: data.body || "",
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    icon: "/icons/notification.png",
+    badge: "/icons/notification.png",
     data: { url: data.url || "/" },
   };
 

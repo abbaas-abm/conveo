@@ -51,16 +51,28 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => ({}))) as {
     text?: string;
-    url?: string;
+    eventId?: string;
   };
   const text = typeof body.text === "string" ? body.text.trim() : "";
-  const url = typeof body.url === "string" ? body.url : "/";
+  const eventId = typeof body.eventId === "string" ? body.eventId : "";
   if (!text) {
     return NextResponse.json({ error: "A message is required." }, { status: 400 });
   }
 
+  // Title the notification with the specific event it belongs to.
+  let title = "Centre for Student Development";
+  if (eventId) {
+    const { data: event } = await admin
+      .from("events")
+      .select("title")
+      .eq("id", eventId)
+      .maybeSingle();
+    if (event?.title) title = event.title;
+  }
+  const url = eventId ? `/events/${eventId}` : "/";
+
   const result = await sendPushToAll(admin, {
-    title: "Centre for Student Development",
+    title,
     body: text,
     url,
   });

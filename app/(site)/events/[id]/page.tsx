@@ -104,36 +104,25 @@ export default async function EventDetailPage(
 
   const aboutSection = event.has_about ? (
     <Card className="border-gray-200 p-6 sm:p-8">
-      <h2 className="text-xl font-semibold text-gray-900">About this event</h2>
-      {event.description || event.about ? (
+      {event.about ? (
         <ExpandableSection
-          enabled={
-            (event.description?.length ?? 0) +
-              richTextToPlain(event.about).length >
-            400
-          }
+          enabled={richTextToPlain(event.about).length > 400}
         >
-          {event.description && (
-            <p className="mt-4 text-base leading-relaxed text-gray-600">
-              {event.description}
+          {hasMarkup(event.about) ? (
+            <div
+              className="prose prose-slate max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(event.about),
+              }}
+            />
+          ) : (
+            <p className="whitespace-pre-line text-base leading-relaxed text-gray-600">
+              {event.about}
             </p>
           )}
-          {event.about &&
-            (hasMarkup(event.about) ? (
-              <div
-                className="prose prose-slate mt-5 max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-semibold prose-a:text-primary prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-blockquote:border-l-primary prose-blockquote:text-gray-500 prose-code:text-primary"
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(event.about),
-                }}
-              />
-            ) : (
-              <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-600">
-                {event.about}
-              </p>
-            ))}
         </ExpandableSection>
       ) : (
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="text-sm text-gray-500">
           Full event details will be published shortly.
         </p>
       )}
@@ -451,7 +440,7 @@ export default async function EventDetailPage(
             speakers: event.has_speakers,
             featured: event.has_featured,
           }}
-          about={{ description: event.description, about: event.about }}
+          about={event.about}
           program={program}
           speakers={speakers}
           featured={featured}

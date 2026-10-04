@@ -20,7 +20,7 @@ interface EnabledSections {
 
 interface EventSideTabsProps {
   enabled: EnabledSections;
-  about: { description: string | null; about: string | null };
+  about: string | null;
   program: ProgramBlockWithSpeakers[];
   speakers: Speaker[];
   featured: EventFeatured[];
@@ -172,7 +172,7 @@ export function EventSideTabs({
                 transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
                 className="mt-8 text-shadow-soft"
               >
-                {open.key === "about" && <AboutContent {...about} />}
+                {open.key === "about" && <AboutContent about={about} />}
                 {open.key === "programme" &&
                   (isAuthenticated ? (
                     <ProgrammeContent program={program} />
@@ -219,33 +219,19 @@ function LockedProgramme({ eventId }: { eventId: string }) {
   );
 }
 
-function AboutContent({
-  description,
-  about,
-}: {
-  description: string | null;
-  about: string | null;
-}) {
-  if (!description && !about) {
+function AboutContent({ about }: { about: string | null }) {
+  if (!about) {
     return <Empty>Full event details will be published shortly.</Empty>;
   }
-  return (
-    <div className="space-y-4">
-      {description && (
-        <p className="text-base leading-relaxed text-white/90">{description}</p>
-      )}
-      {about &&
-        (hasMarkup(about) ? (
-          <div
-            className="prose prose-invert max-w-none prose-a:text-[#f0d98a] prose-headings:text-white prose-strong:text-white"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(about) }}
-          />
-        ) : (
-          <p className="whitespace-pre-line text-base leading-relaxed text-white/90">
-            {about}
-          </p>
-        ))}
-    </div>
+  return hasMarkup(about) ? (
+    <div
+      className="prose prose-invert max-w-none prose-a:text-[#f0d98a] prose-headings:text-white prose-strong:text-white"
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(about) }}
+    />
+  ) : (
+    <p className="whitespace-pre-line text-base leading-relaxed text-white/90">
+      {about}
+    </p>
   );
 }
 
@@ -359,7 +345,7 @@ function SpeakersContent({ speakers }: { speakers: Speaker[] }) {
                 <>
                   <p
                     className={cn(
-                      "mt-1 text-sm leading-relaxed text-white/75",
+                      "mt-1 text-justify text-sm leading-relaxed text-white/75",
                       !expanded && isLong && "line-clamp-3",
                     )}
                   >

@@ -77,23 +77,16 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
       const response = await fetch("/api/push/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: message, url: `/events/${event.id}` }),
+        body: JSON.stringify({ text: message, eventId: event.id }),
       });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
-        sent?: number;
       };
       if (!response.ok) {
         toast.error(data.error ?? "Push notification failed to send.");
         return;
       }
-      if ((data.sent ?? 0) > 0) {
-        toast.success(
-          `Push sent to ${data.sent} device${data.sent === 1 ? "" : "s"}.`,
-        );
-      } else {
-        toast.message("No push subscribers to notify yet.");
-      }
+      toast.success("Notification sent successfully.");
     } catch {
       toast.error("Push notification failed to send.");
     }

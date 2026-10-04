@@ -64,7 +64,7 @@ export function EventSpeakers({ speakers }: { speakers: Speaker[] }) {
                     <>
                       <p
                         className={cn(
-                          "mt-1 text-sm leading-relaxed text-gray-600",
+                          "mt-1 text-justify text-sm leading-relaxed text-gray-600",
                           !expanded && isLong && "line-clamp-3",
                         )}
                       >
