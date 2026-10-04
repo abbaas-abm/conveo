@@ -6,6 +6,8 @@
 
 > **How to read this:** Phases are ordered by impact-per-effort. Do them in order. Each phase has a **Goal**, **Steps**, and **Verification**. Estimated effort assumes one developer familiar with the codebase.
 
+> **Status (implemented):** Most of this plan is now built. Done: Phase 2 Tier A (cookie-less anon client + `unstable_cache` for public reads), event-detail **content** caching (page stays dynamic for per-user actions), `revalidateTag("events", { expire: 0 })` on admin edits; Phase 3 (Redis + BullMQ worker for PDFs/email, retries, inline fallback with the service-role client, enqueue timeout); Phase 4 (web pinned to core 0, worker to core 1, reverse proxy notes); Phase 6 (restricted image `remotePatterns`); Phase 7 (health endpoint, queue checks). Additionally: the public reflections wall uses **polling** (not Realtime), Web Push is in place, and sessions use ~400-day cookies. Still recommended before a high-concurrency event: confirm **Supabase compute is Small/Medium**, apply the **nginx header-buffer** directives (the `502 upstream sent too big header` fix), and run **`load-tests/authenticated.js`** on staging.
+
 ---
 
 ## 0. Verdict & Executive Summary

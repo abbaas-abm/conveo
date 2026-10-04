@@ -19,22 +19,23 @@ What makes it interesting is not just the feature set but **how it is built**: a
 7. [Event lifecycle & visibility](#event-lifecycle--visibility)
 8. [Registration & the attendee badge pipeline](#registration--the-attendee-badge-pipeline)
 9. [Pledges](#pledges)
-10. [Reflections wall (realtime)](#reflections-wall-realtime)
-11. [Feedback (anonymous)](#feedback-anonymous)
-12. [Attendance, QR check-in & the support team portal](#attendance-qr-check-in--the-support-team-portal)
-13. [Speakers & programme](#speakers--programme)
-14. [Reports](#reports)
-15. [Caching & performance strategy](#caching--performance-strategy)
-16. [Progressive Web App](#progressive-web-app)
-17. [Design system](#design-system)
-18. [Repository structure](#repository-structure)
-19. [Environment variables](#environment-variables)
-20. [Local development](#local-development)
-21. [Database setup & migrations](#database-setup--migrations)
-22. [Deployment](#deployment)
-23. [Operations & monitoring](#operations--monitoring)
-24. [Troubleshooting](#troubleshooting)
-25. [Security notes](#security-notes)
+10. [Reflections wall (polling) + Present view](#reflections-wall-polling--present-view)
+11. [Announcements & Web Push](#announcements--web-push)
+12. [Feedback (anonymous)](#feedback-anonymous)
+13. [Attendance, QR check-in & the support team portal](#attendance-qr-check-in--the-support-team-portal)
+14. [Speakers, programme & featured moments](#speakers-programme--featured-moments)
+15. [Reports](#reports)
+16. [Caching & performance strategy](#caching--performance-strategy)
+17. [Progressive Web App](#progressive-web-app)
+18. [Design system](#design-system)
+19. [Repository structure](#repository-structure)
+20. [Environment variables](#environment-variables)
+21. [Local development](#local-development)
+22. [Database setup & migrations](#database-setup--migrations)
+23. [Deployment](#deployment)
+24. [Operations & monitoring](#operations--monitoring)
+25. [Troubleshooting](#troubleshooting)
+26. [Security notes](#security-notes)
 
 ---
 
@@ -42,16 +43,16 @@ What makes it interesting is not just the feature set but **how it is built**: a
 
 ### For attendees (students, staff, guests)
 - **Email OTP sign-in** — no passwords. Enter your email, receive a one-time code, done.
-- **Frictionless onboarding** — a short, animated, question-by-question profile builder (personal + academic details). Guests and guest speakers skip the academic section.
-- **Browse events** — a searchable, filterable explorer plus a featured event and an "upcoming" strip on the home page.
-- **Event pages** — countdown timer, event details, an about section (rich text), a redesigned agenda, speaker profiles, announcements, and action buttons.
-- **One-tap registration** — register for an event, choose whether you are attending as Student / Staff / Guest / Guest Speaker.
-- **Instant attendee badge** — a personalised PDF with a QR code is generated and emailed to you, and is re-downloadable from your dashboard.
-- **Personal dashboard** — your profile and all your registrations, with a download button for each attendee tag.
-- **Pledges** — take a pledge for an event and receive an official PDF pledge certificate by email.
-- **Anonymous feedback** — a clean, animated, multi-step feedback flow. No login required, and responses are not linked to any individual.
-- **Live reflections wall** — post and watch reflections appear in real time on a sticky-note wall.
-- **Install as an app** — the site is a Progressive Web App (PWA), installable to the home screen with the Wits crest as its icon.
+- **Frictionless onboarding** — a short, animated, question-by-question profile builder. Students also answer **place of residence** and (if they live in a Wits residence) which one; gender includes Male / Female / Non-binary / Other. Guests and guest speakers skip the academic section.
+- **Browse events** — a searchable explorer, a featured event, and an "upcoming" strip. A site-wide **top banner** advertises the latest event with a live countdown and a Register link (it hides automatically once you've registered).
+- **Rich event pages** — a full-bleed **cover hero** with a deep-blue overlay carrying the title, theme, dates and venue; a **side-notch menu** (About · Programme · Speakers · Featured) that opens animated full-colour panels; a **featured moments** slider; speakers with inline "Read more"; and a login-locked agenda.
+- **One-tap registration** — choose Student / Staff / Guest / Guest Speaker; a personalised QR **attendee badge** PDF is generated and emailed, and is re-downloadable from your dashboard.
+- **Actions** — once registered, quick access to Reflections, Pledge and Feedback (a compact Actions row on mobile).
+- **Pledges** — take a pledge and receive an official PDF certificate by email.
+- **Anonymous feedback** — a clean, multi-step flow; responses are not linked to any individual.
+- **Reflections wall** — a sticky-note wall kept fresh by **near-real-time polling**; your own note appears instantly.
+- **Announcement notifications** — opt in to **browser push** and receive admin announcements as real notifications, even when the tab is closed.
+- **Install as an app** — a Progressive Web App (PWA) with a dedicated app shell (dashboard-first, bottom navigation).
 
 ### For the support team (formerly "volunteers")
 - **Support Team Portal** — a focused, mobile-first portal with two tools: **Scanner** and **History**.
@@ -60,15 +61,16 @@ What makes it interesting is not just the feature set but **how it is built**: a
 
 ### For administrators
 - **Admin dashboard** with a deep-blue sidebar and role-based access.
-- **Event editor** with ten tabs: Information, About, Programme, Speakers, Media, Registrations, Attendance, Feedback, Announcements and Preferences.
-- **Visibility & feature toggles** per event (`has_information`, `has_about`, `has_programme`, `has_speakers`, `has_media`, `has_pledges`, `has_reflections`, `has_feedback`) — turn any section on or off and the public page adapts instantly.
-- **People management** — search users, view their details, and change roles (User / Support Team / Admin).
+- **Event editor** with ten tabs plus a **More → Featured** option: Information, About, Programme, Speakers, Media, Registrations, Attendance, Feedback, Announcements, Preferences, Featured.
+- **Visibility & feature toggles** per event (`has_information`, `has_about`, `has_programme`, `has_speakers`, `has_media`, `has_pledges`, `has_reflections`, `has_feedback`, `has_featured`, `has_side_notch`) — turn any section on or off and the public page adapts on the next refresh.
+- **People management** — search users, view details, and change roles (User / Support Team / Admin).
 - **Programme builder** — multi-day agenda with drag-and-drop ordering, block types, times and speaker assignment.
-- **Speaker management** — drag-and-drop speaker order with `speaker_order`, image upload and cropping.
-- **Announcements** — publish short updates scoped to an event.
-- **Attendance analytics** — shaded by day (derived from actual check-in dates), with pagination, search, faculty filtering, and gender/position/faculty/year charts.
+- **Speaker management** — drag-and-drop speaker order (`speaker_order`) with image upload and cropping.
+- **Featured moments** — CRUD with image upload/cropping, shown as a public slider.
+- **Announcements** — publish short updates scoped to an event and **broadcast a Web Push notification** to subscribers in one click.
+- **Attendance analytics** — split by day (derived from actual check-in dates), with pagination, search, faculty filtering, and gender/position/faculty/year charts.
 - **Reports** — generate a full PDF event report (registrations, attendance, feedback) and email it.
-- **Reflections & pledges** — moderation and export views.
+- **Reflections** — moderation, plus a **Present** projector view (real-time, view-only) with the event title/description.
 - **Tags** — QR/feedback tag utilities.
 
 ---
@@ -87,9 +89,10 @@ What makes it interesting is not just the feature set but **how it is built**: a
 | Job queue | **BullMQ** on **Redis 7** (self-hosted) |
 | PDF generation | **pdf-lib** + **qrcode** |
 | Email delivery | **Plunk** (`next-api.useplunk.com`) |
+| Web Push | **web-push** (VAPID) + service worker |
 | Charts | **Recharts** |
 | Forms & validation | **react-hook-form** + **zod** |
-| Notifications | **sonner** (toasts) |
+| Notifications | **sonner** (in-app toasts) + **Web Push** |
 | Runtime | **Node.js 22** in Docker, behind **nginx** |
 | Icons/CDN (optional) | **Cloudflare** |
 
@@ -172,15 +175,17 @@ All data lives in Supabase Postgres, protected by Row Level Security. Core table
 
 | Table | Purpose | Notable columns |
 | --- | --- | --- |
-| `profiles` | One row per user, created by an auth trigger | `role`, `position`, `onboarding`, `first_name`, academic fields |
-| `events` | Event records | `status`, `mode`, `has_*` visibility flags, cover/featured images |
+| `profiles` | One row per user, created by an auth trigger | `role`, `position`, `onboarding`, academic fields, `place_of_residence`, `university_res` |
+| `events` | Event records | `status`, `mode`, `has_*` visibility flags (incl. `has_featured`, `has_side_notch`), cover/featured images |
 | `registrations` | A user's registration for an event | `attendee_id`, `event_id`, `position`, `status`, `attendee_tag_url` |
 | `event_program_blocks` | Agenda sessions | `day_number`, `display_order`, `start_time`, `end_time`, `type` |
 | `event_program_block_speakers` | Join table: block ↔ speaker | — |
 | `speakers` | Speaker profiles | `event_id`, `speaker_order`, `avatar_url`, `bio` |
 | `event_gallery_images` | Event media | `display_order`, `object_key` |
+| `event_featured` | Featured "moments" (slider) | `event_id`, `title`, `description`, `image_url` |
 | `announcements` | Per-event updates | `event_id`, `text` |
-| `reflections` | Live reflections wall posts | `event_id`, `user_id`, `content` |
+| `push_subscriptions` | Web Push subscriptions | `user_id` (nullable), `endpoint` (unique), `keys` (jsonb) |
+| `reflections` | Reflections wall posts | `event_id`, `user_id`, `content` |
 | `pledges` | Pledges + certificate URL | `user_id`, `event_id`, `pledge_text`, `pledge_document_url` |
 | `attendance` | Check-in records | `event_id`, `attendee_id`, `volunteer_id`, `created_at` |
 | `feedback` | Anonymous feedback | `event_id`, `rating`, `comment`, `attendee_id` (nullable) |
@@ -208,7 +213,7 @@ Sessions are cookie-based via `@supabase/ssr`, with:
 - `lib/supabase/server.ts` — cookie-bound server client.
 - `lib/supabase/client.ts` — browser client.
 - `lib/supabase/anon.ts` — **cookie-less** client for cacheable public reads.
-- `lib/supabase/admin.ts` — service-role client used **only by the worker**.
+- `lib/supabase/admin.ts` — service-role client (bypasses RLS) used by the worker, the inline delivery fallback, and the push subscribe/send routes. Never bundled to the client.
 - `lib/supabase/proxy.ts` — session refresh + route guards (Next 16 middleware, invoked from `proxy.ts`).
 
 ### Roles & route protection
@@ -233,7 +238,9 @@ An event is created by an admin and moves through `OPEN → CLOSED → ENDED`. I
 
 Each event exposes granular **visibility flags** that shape the public page without code changes. Turning a flag off hides the corresponding section and disables its gated pages (pledges/feedback/reflections redirect to `/`):
 
-`has_information`, `has_about`, `has_programme`, `has_speakers`, `has_media`, `has_pledges`, `has_reflections`, `has_feedback`.
+`has_information`, `has_about`, `has_programme`, `has_speakers`, `has_media`, `has_pledges`, `has_reflections`, `has_feedback`, `has_featured`, `has_side_notch`.
+
+Feature/visibility changes call `revalidateEvents()` (`revalidateTag("events", { expire: 0 })`) so the public page reflects them on the next refresh with no stale window.
 
 ---
 
@@ -263,11 +270,34 @@ Attendees can take a pledge on the public pledge page (`/pledges/[eventId]`).
 
 ---
 
-## Reflections wall (realtime)
+## Reflections wall (polling) + Present view
 
-`/reflections` is a **live sticky-note wall**. Posts subscribe to Supabase **Realtime** (`postgres_changes` scoped by `event_id`), so new reflections appear instantly without a refresh. The wall is public, and names are shown from the linked profile. An admin reflection view provides moderation.
+`/reflections` is a **sticky-note wall**. It intentionally uses **incremental polling every 15s** rather than websockets, so it scales to any audience without hitting Supabase's concurrent-connection ceiling. The poster's own note is added optimistically and appears instantly; other people's new notes arrive within ~15s. The wall is public and names come from the linked profile.
 
-*Operational note:* Supabase Realtime has a concurrent-connection ceiling (plan-dependent). For very large audiences, consider short-polling as a fallback so the wall scales without one websocket per viewer.
+### Present (projector) view
+`/present/[eventId]` is an **admin-only, full-screen** view for projecting the wall: a deep-blue background with the event title and description. It is the app's **only Realtime connection** (`postgres_changes` scoped to the event), so new notes appear live — and it is **view-only** (no input). Open it from **Admin → Reflections → [event] → Present**; it includes a browser **Fullscreen** toggle.
+
+*Operational note:* keeping Realtime only on the single presenter connection is deliberate — the public wall uses polling so thousands of viewers don't each hold a websocket.
+
+---
+
+## Announcements & Web Push
+
+Admins publish announcements per event from the **Announcements** tab. Posting one:
+
+1. Stores the announcement (shown via the event page's announcements button, read **uncached** so it's always the latest).
+2. **Broadcasts a Web Push notification** to everyone who has opted in.
+
+Implementation:
+- `lib/push.ts` signs and sends via **web-push** (VAPID) to every row in `push_subscriptions`, pruning dead endpoints (HTTP 404/410).
+- `POST /api/push/subscribe` saves a subscription (anonymous or signed-in).
+- `POST /api/push/send` is **admin-only**; it looks up the event title and sends a notification **titled with that event**, which opens the event page when tapped.
+- `public/sw.js` handles the `push` and `notificationclick` events.
+- `components/notifications/NotificationPrompt.tsx` is the opt-in card.
+
+Notification icons: `icon` = `/icons/notification.png` (the crest, shown when the notification is expanded) and `badge` = `/icons/badge.png` (a monochrome, transparent-background crest for the Android status bar — a square white image there renders as a white block).
+
+*Caveats:* users must grant notification permission; **iOS** requires the installed PWA (iOS 16.4+); and VAPID keys (`NEXT_PUBLIC_VAPID_PUBLIC_KEY` at build, `VAPID_PRIVATE_KEY` at runtime) plus `SUPABASE_SERVICE_ROLE_KEY` must be set for sending to work.
 
 ---
 
@@ -297,18 +327,21 @@ The admin Attendance tab derives its **day tabs from the actual check-in dates**
 
 ---
 
-## Speakers & programme
+## Speakers, programme & featured moments
 
 ### Programme
-- Multi-day, with `day_number` grouping.
-- Drag-and-drop ordering (`display_order`); times swap with the position.
-- Typed blocks (keynote, workshop, panel, etc.) with rich descriptions.
-- Speakers attached per block.
-- On the public page, each block is a distinct deep-blue card with a gold number, a one-line truncated description, a speaker avatar stack and a **Read more** button that opens a clean modal with the full time, type, title, description and speaker list.
+- Multi-day, grouped by `day_number`; drag-and-drop ordering (times swap with the position); typed blocks with rich descriptions and per-block speakers.
+- On the public page each block is a distinct deep-blue card with a gold number, a one-line truncated description, a speaker avatar stack and a **Read more** button. The full agenda is **login-gated**, and the side-notch **Programme** panel mirrors it (locked until sign-in).
 
 ### Speakers
-- `speaker_order` drives display order everywhere — the admin list (drag-and-drop) and the public event page are kept in sync.
-- The public "Speakers & facilitators" section shows the name in bold, the title in deep gold, and a truncated bio; clicking a speaker opens their profile modal with the full biography.
+- `speaker_order` drives display order everywhere — the admin list (drag-and-drop) and the public event page stay in sync.
+- Each speaker shows a photo, name (bold), gold title and bio; long bios have an inline **Read more** (text is justified). No modal.
+
+### Featured moments
+- Per-event highlights (`event_featured`) shown on the public page as a **slider** (static when there's only one). Each has a title, description and an image uploaded with an in-app **cropper**. Controlled by the `has_featured` flag.
+
+### Side-notch menu
+- When `has_side_notch` is on, fixed notches (deep blue / dark gold) open animated full-colour panels for About, Programme, Speakers and Featured. On desktop they default to open with an info-icon toggle; on mobile an info button collapses/expands them.
 
 ---
 
@@ -323,16 +356,17 @@ Admins can generate an event report from the admin dashboard:
 
 ## Caching & performance strategy
 
-This is where the platform earns its headroom. Everything below is designed so that **10,000 concurrent visitors** degrade gracefully rather than falling over.
+Everything below is designed so heavy load degrades gracefully rather than falling over.
 
-- **Static / ISR public pages.** The home page, events list, about and contact are statically generated with revalidate windows (60s / 1h). They are served without touching Node's render path or Supabase.
-- **Cookie-less data reads.** Public data uses `lib/supabase/anon.ts` and is wrapped in `unstable_cache` (tagged `events`). This is what allows the pages to be static at all — the shared site layout no longer reads the session (the navbar resolves auth client-side).
-- **Dynamic only where necessary.** The event detail page is explicitly `force-dynamic` because it shows per-user registration state and live data. Realtime (`/reflections`) and user-gated pages stay dynamic too.
-- **On-demand invalidation.** Admin mutations call the `revalidateEvents` server action (`revalidateTag("events", "max")`), so cached lists refresh immediately after an edit.
-- **Offloaded CPU.** PDF + QR generation runs in the worker container, pinned to a dedicated core.
-- **Durable queue with retries.** Redis (AOF) persists jobs across restarts; BullMQ retries transient failures.
-- **HTTP caching.** nginx sets long-lived immutable caching for `/_next/static/*` and proxies everything else; Cloudflare can cache the ISR HTML at the edge (with a bypass rule for `/admin`, `/user`, `/api`, and auth routes).
-- **Skeleton loaders.** `loading.tsx` files provide instant perceived performance on route transitions.
+- **Static / ISR public pages.** The home page, events list, about and contact are statically generated with revalidate windows (60s / 1h) and served without touching Node's render path or Supabase.
+- **Cookie-less data reads.** Public data uses `lib/supabase/anon.ts` wrapped in `unstable_cache` (tagged `events`). This is what lets public pages be cached at all — the shared site layout no longer reads the session (the navbar resolves auth client-side).
+- **Event detail: cached content, dynamic actions.** The event record, programme, speakers and featured moments are cached (anon + `unstable_cache`), while the per-user registration state, Register button and Actions row stay dynamic (`force-dynamic`). **Announcements are read uncached** so every refresh shows the latest.
+- **Polling over websockets.** The public reflections wall uses incremental 15s polling; the app's only Realtime connection is the admin Present view.
+- **On-demand invalidation.** Admin edits, preference/visibility toggles and status changes call `revalidateEvents()` → `revalidateTag("events", { expire: 0 })`, so the next request re-fetches fresh data with **no stale window**.
+- **Offloaded CPU.** PDF + QR generation runs in the worker container, pinned to a dedicated CPU core.
+- **Durable queue with retries.** Redis (AOF) persists jobs across restarts; BullMQ retries transient failures with exponential backoff. `enqueue()` has a 1.5s timeout and falls back to inline `after()` delivery (using the service-role client when available).
+- **HTTP caching.** nginx serves `/_next/static/*` with immutable caching and proxies the rest; Cloudflare can cache the ISR HTML at the edge (with a bypass rule for `/admin`, `/user`, `/api` and auth routes).
+- **Skeleton loaders + load tests.** `loading.tsx` files give instant perceived performance, and `load-tests/authenticated.js` (k6) validates the authenticated path.
 
 The practical result: heavy read traffic is absorbed by the cache/CDN, and heavy write traffic (registrations, pledges, reports) is absorbed by the queue and a second CPU core.
 
@@ -340,12 +374,14 @@ The practical result: heavy read traffic is absorbed by the cache/CDN, and heavy
 
 ## Progressive Web App
 
-The platform is installable as a PWA:
+The platform is installable as a PWA, and behaves like an app when installed:
 
 - `app/manifest.ts` — name, `standalone` display, theme `#003366`, and icons.
-- `public/icons/*` — 192/512 standard icons, a 512 maskable icon, and an Apple touch icon, all generated from the Wits crest via `scripts/generate-icons.mjs` (using `sharp`).
-- `public/sw.js` — a minimal pass-through service worker (required for installability; does no caching, so nothing goes stale).
-- `components/pwa/InstallAppButton.tsx` — a floating **"Install app"** pill. It captures `beforeinstallprompt` and triggers the native install, shows iOS "Add to Home Screen" instructions as a fallback, hides when already installed, and is hidden on `/admin`.
+- `public/icons/*` — 192/512 standard icons, a 512 maskable icon, an Apple touch icon, a **notification icon** and a monochrome **badge** (for Android status-bar notifications).
+- `public/sw.js` — a pass-through service worker that also handles **Web Push** (`push` / `notificationclick`); it does no caching, so nothing goes stale.
+- `components/pwa/InstallAppButton.tsx` — a floating **"Install app"** pill that captures `beforeinstallprompt` early (via an inline script), shows platform-appropriate instructions as a fallback, and hides when already installed / on `/admin`.
+- **App shell** (`components/pwa/PwaChrome.tsx` + the `data-pwa` Tailwind variant): when running installed, the site renders a **dashboard-first** app experience — a top profile bar, a bottom nav (Events / Dashboard), `/` redirects to `/app` (which routes to `/user` or `/login` server-side), and a themed auth screen. In a normal browser the site is completely unchanged.
+- **Web Push** (`web-push`, VAPID): visitors opt in to announcement notifications via `NotificationPrompt`; admins broadcast from the Announcements tab.
 
 ---
 
@@ -371,24 +407,28 @@ app/
   (site)/            public site: home, events, about, contact, user dashboard
   admin/             admin dashboard: dashboard, people, events, reports,
                      reflections, pledges, speakers, tags, support team
-  api/               registration · pledges · reports · health
+  api/               registration · pledges · reports · push (subscribe/send) · health
+  app/               PWA entry (server auth check → /user or /login)
+  present/[eventId]  admin-only realtime projector view
   feedback/[eventId] anonymous feedback flow
   pledges/[eventId]  pledge flow
-  reflections/       realtime reflections wall
+  reflections/       reflections wall (polling)
   volunteer/         support team portal
   manifest.ts        PWA manifest
-  layout.tsx         root layout (fonts, metadata, PWA install button)
+  layout.tsx         root layout (fonts, metadata, notifications, PWA)
 components/
-  admin/             event editor + every admin tab, dialogs, uploaders
+  admin/             event editor + every admin tab, dialogs, uploaders, present view
   auth/              OTP gateway + input
   dashboard/         user profile + my events
-  events/            event cards, countdown, programme, speakers, register button
+  events/            event cards, cover hero, side-notch tabs, programme,
+                     speakers, featured slider, register button, countdown
   feedback/          feedback flow
   home/              hero, featured event, core units, upcoming events
-  layout/            navbar, footer, page hero
+  layout/            navbar, footer, page hero, top event banner
+  notifications/     web push opt-in prompt
   pledges/           pledge flow
-  pwa/               install button
-  reflections/       realtime board
+  pwa/               install button + app chrome
+  reflections/       polling board
   ui/                design-system primitives
   volunteer/         portal, scanner, history
 lib/
@@ -396,18 +436,20 @@ lib/
   queue/             BullMQ queues + enqueue helper
   email/             registration · pledge · report delivery
   pdf/               attendee badge · pledge letter · event report
+  push.ts            Web Push (web-push) sender
   data.ts            data access (cacheable public reads + user reads)
   auth.ts            current-user helper
   roles.ts           role display labels
   types.ts           all domain types
   program.ts         programme block types & labels
-  profile-options.ts faculty / year / gender options
+  profile-options.ts faculty / year / gender / residence options
   rich-text.ts       HTML sanitisation & helpers
   storage.ts         image upload helpers
   utils.ts           formatting, initials, etc.
 worker/index.ts      BullMQ consumer (pdf-lib + Plunk + Storage)
 proxy.ts             Next 16 middleware entrypoint (session + guards)
 deploy/nginx/        production nginx site config
+load-tests/          k6 authenticated load test
 supabase/fixes/      idempotent SQL migrations to run in Supabase
 scripts/             icon generator
 Dockerfile           multi-stage: deps → builder → runner (web) → worker
@@ -429,6 +471,9 @@ Create a `.env` in the project root (and on the server). See `.env.example`.
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes (worker) | **server only** | Service-role key for the worker; never expose |
 | `REDIS_URL` | Yes | runtime | `redis://redis:6379` inside compose |
 | `PLUNK_SECRET_KEY` | Yes | server only | Sends all transactional email |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Yes (for push) | build + runtime | VAPID public key (inlined into the client bundle) |
+| `VAPID_PRIVATE_KEY` | Yes (for push) | **server only** | VAPID private key that signs Web Push |
+| `VAPID_SUBJECT` | No | server only | `mailto:` contact for VAPID (defaults to `registrations@witscsd.co.za`) |
 | `NEXT_PUBLIC_PLUNK_PUBLIC_KEY` | No | client | Optional |
 
 \* Provide either the publishable key or the anon key. `NEXT_PUBLIC_*` values are inlined at build time, so they must be present when the Docker image is built.
@@ -481,16 +526,20 @@ All schema changes, RLS policies and enum additions live as **idempotent SQL scr
 - `attendance_multiple_checkins.sql` — drops the old unique constraint so multi-day check-ins are allowed, adds a lookup index.
 - `attendee_tag_url.sql` — `registrations.attendee_tag_url` + badge storage policy.
 - `event_images_storage.sql` — the public `event_images` bucket and its policies (with folder-scoped restrictions).
+- `event_featured.sql` — Featured moments table + RLS.
 - `feedback_anonymous.sql` — allows `feedback.attendee_id` to be null.
 - `pledges.sql` — pledges table, RLS and document storage policy.
 - `program_day_number.sql` — programme `day_number` column + index.
 - `promote_admin.sql` — promote a user to `admin` by email.
-- `reflections.sql` — reflections RLS + realtime.
+- `push_subscriptions.sql` — Web Push subscriptions table + RLS.
+- `reflections.sql` — reflections RLS + Realtime (used by the admin Present view).
 - `rsvp_position.sql` — position column and the `GUEST_SPEAKER` enum value.
 - `speakers_event_id.sql` — speaker → event foreign key + index.
 - `verify_storage.sql` — storage health checks.
 
-Storage uses a single `event_images` bucket with folder scoping: `attendee-tags/`, `pledges/`, and `speakers/`.
+> **Manually added columns** (add via the Supabase table editor or SQL): `events.has_featured`, `events.has_side_notch`, `profiles.place_of_residence`, `profiles.university_res`.
+
+Storage uses a single `event_images` bucket with folder scoping: `attendee-tags/`, `pledges/`, `speakers/` and `events/{id}/featured/`.
 
 ---
 
@@ -528,7 +577,17 @@ sudo certbot --nginx -d events.witscsd.co.za
 sudo systemctl reload nginx
 ```
 
-The config redirects HTTP to HTTPS, enables HTTP/2, gzip, immutable caching for `/_next/static/*`, and proxies everything else to the web container.
+The config redirects HTTP to HTTPS, enables HTTP/2, gzip, immutable caching for `/_next/static/*`, and proxies everything else to the web container. It also sets **enlarged proxy header buffers**:
+
+```nginx
+proxy_buffer_size        32k;
+proxy_buffers            8 32k;
+proxy_busy_buffers_size  64k;
+large_client_header_buffers 4 32k;
+client_header_buffer_size 16k;
+```
+
+Without these, Next's large response headers (Supabase auth cookies + font-preload `Link` headers) overflow nginx's default buffer and produce intermittent `502 upstream sent too big header` errors. Apply them to whichever `server` block serves your domain, then `sudo nginx -t && sudo systemctl reload nginx`.
 
 ### 3. DNS & firewall
 
@@ -573,9 +632,13 @@ If **failed** jobs climb during a burst, it is almost always the email provider 
 | Worker: "Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY" | The service-role key isn't in the worker's environment. Verify with `docker compose exec worker env \| grep SUPABASE` and recreate: `docker compose up -d --force-recreate worker`. Watch for typos in the variable name. |
 | Emails not arriving | Check `docker compose logs worker`, the Redis `failed` list, and the Plunk rate limit. |
 | Registration succeeds but no badge | Queue/worker issue — confirm `conveo-worker` is up. If Redis is down, delivery falls back to the web process. |
-| Public pages showing stale content | The ISR window (30–60s) or a missing `revalidateTag` after an admin edit. |
-| Redis "Memory overcommit" warning | `echo 'vm.overcommit_memory = 1' | sudo tee -a /etc/sysctl.conf && sudo sysctl vm.overcommit_memory=1` |
-| Install prompt never appears | Requires HTTPS and a registered service worker; check `sw.js` is served and the manifest is valid. |
+| Push notification not received | The admin toast reports the reason: "Push is not configured" → add the VAPID keys and rebuild; "requires SUPABASE_SERVICE_ROLE_KEY" → add it to the web container; "No push subscribers" → the subscription didn't persist (check `push_subscriptions`). If you regenerated the VAPID keys, existing subscriptions are invalid — re-enable notifications. |
+| Android status-bar shows a white block | The notification `badge` must be a monochrome, transparent-background image (`/icons/badge.png`). A square white icon is tinted fully white by Android. |
+| Intermittent `502 ... upstream sent too big header` | Next's response headers exceed nginx's default buffer. Add the enlarged `proxy_buffer_size`/`proxy_buffers`/`large_client_header_buffers` directives (see Deployment → nginx). |
+| Reflections wall not updating instantly | By design — the public wall polls every 15s; only the admin **Present** view is realtime. |
+| Public pages showing stale content | Should not happen after admin edits (invalidation uses `expire: 0`); otherwise check the ISR window (30–60s). |
+| Redis "Memory overcommit" warning | `echo 'vm.overcommit_memory = 1' \| sudo tee -a /etc/sysctl.conf && sudo sysctl vm.overcommit_memory=1` |
+| Install prompt never appears | Requires HTTPS and a registered service worker; check `sw.js` is served and the manifest is valid. Firefox / desktop Safari have no install prompt by design. |
 | `speaker_order` appears at the end | Speakers with a `null` order sort last; drag them in the admin to assign explicit order. |
 
 ---
