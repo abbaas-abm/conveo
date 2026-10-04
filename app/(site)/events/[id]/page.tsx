@@ -29,7 +29,7 @@ import {
   getCachedEventAnnouncements,
   getCachedEventFeatured,
 } from "@/lib/data";
-import { formatDate, formatTime, secondsUntil } from "@/lib/utils";
+import { cn, formatDate, formatTime, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
 
@@ -244,6 +244,15 @@ export default async function EventDetailPage(
                       {formatDate(event.end_date)} · {formatTime(event.end_date)}
                     </span>
                   </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="size-3.5 text-[#d9b45b]" />
+                    <span>
+                      <span className="font-medium text-white">Venue</span>{" "}
+                      {event.mode === "ONLINE"
+                        ? "Online"
+                        : (event.venue ?? "Wits Campus")}
+                    </span>
+                  </span>
                 </div>
               )}
             </div>
@@ -268,7 +277,14 @@ export default async function EventDetailPage(
                 />
               </div>
             )}
-            <Card className="border-gray-200 p-6">
+            <Card
+              className={cn(
+                "border-gray-200 p-6",
+                // On mobile the cover already shows the details, so registered
+                // attendees don't need this block. Desktop always shows it.
+                isRegistered && "hidden lg:block",
+              )}
+            >
               <h2 className="text-lg font-semibold text-gray-900">
                 Event details
               </h2>
