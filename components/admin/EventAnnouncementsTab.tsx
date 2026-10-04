@@ -59,6 +59,12 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
       setItems((prev) => [data as Announcement, ...prev]);
       setText("");
       toast.success("Announcement posted.");
+      // Fire a Web Push to subscribers (best-effort).
+      void fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: value, url: `/events/${event.id}` }),
+      }).catch(() => {});
     } catch (error) {
       console.error(error);
       toast.error(

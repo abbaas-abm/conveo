@@ -29,7 +29,7 @@ import {
   getCachedEventById,
   getCachedEventProgram,
   getCachedSpeakersByEvent,
-  getCachedEventAnnouncements,
+  getEventAnnouncements,
   getCachedEventFeatured,
 } from "@/lib/data";
 import { cn, formatDate, formatTime, secondsUntil } from "@/lib/utils";
@@ -55,7 +55,7 @@ export default async function EventDetailPage(
     getCachedEventById(id),
     getCachedEventProgram(id),
     getCachedSpeakersByEvent(id),
-    getCachedEventAnnouncements(id),
+    getEventAnnouncements(id),
     getCachedEventFeatured(id),
     getCurrentUser(),
   ]);

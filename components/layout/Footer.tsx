@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, Phone } from "lucide-react";
 
 const QUICK_LINKS = [
   { href: "/", label: "Home" },
@@ -47,13 +47,6 @@ export function Footer() {
         <div>
           <h3 className="text-sm font-semibold text-gray-900">Contact</h3>
           <ul className="mt-3 space-y-2.5 text-sm text-gray-600">
-            <li className="flex items-start gap-2.5">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-gray-400" />
-              <span>
-                Division of Student Affairs (Student Center), East Campus,
-                University of the Witwatersrand, Braamfontein
-              </span>
-            </li>
             <li className="flex items-center gap-2.5">
               <Mail className="size-4 shrink-0 text-gray-400" />
               <a

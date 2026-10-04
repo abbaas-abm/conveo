@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, Phone } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Card } from "@/components/ui/card";
 
@@ -7,15 +7,6 @@ export const metadata: Metadata = { title: "Contact" };
 export const revalidate = 3600;
 
 const DETAILS = [
-  {
-    icon: MapPin,
-    label: "Office Location",
-    lines: [
-      "Division of Student Affairs (Student Center)",
-      "East Campus, University of the Witwatersrand",
-      "Braamfontein, Johannesburg",
-    ],
-  },
   {
     icon: Mail,
     label: "Email",
@@ -83,23 +74,6 @@ export default function ContactPage() {
               );
             })}
           </div>
-
-          <Card className="overflow-hidden border-gray-200 p-0">
-            <div className="relative h-52 w-full bg-slate-100">
-              <iframe
-                title="CSD office location"
-                className="h-full w-full"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=28.028%2C-26.194%2C28.042%2C-26.184&layer=mapnik&marker=-26.189%2C28.035"
-              />
-            </div>
-            <div className="border-t border-gray-200 p-4">
-              <p className="text-sm text-slate-600">
-                Student Union Building (Matrix), Wits East Campus
-              </p>
-            </div>
-          </Card>
         </div>
       </section>
     </>
