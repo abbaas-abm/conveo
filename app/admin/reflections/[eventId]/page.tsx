@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getEventById, getReflections } from "@/lib/data";
 import { AdminReflections } from "@/components/admin/AdminReflections";
 
@@ -28,12 +29,26 @@ export default async function AdminEventReflectionsPage(
           <ArrowLeft className="size-4" />
           All events
         </Link>
-        <h2 className="mt-3 text-lg font-semibold text-gray-900">
-          {event.title}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Live reflections from attendees.
-        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {event.title}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Live reflections from attendees.
+            </p>
+          </div>
+          <Button asChild>
+            <Link
+              href={`/present/${event.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Play className="size-4" />
+              Present
+            </Link>
+          </Button>
+        </div>
 
         <div className="mt-5">
           <AdminReflections reflections={reflections} />

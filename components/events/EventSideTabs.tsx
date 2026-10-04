@@ -30,9 +30,9 @@ interface EventSideTabsProps {
 
 const SECTIONS = [
   { key: "about", label: "About event", color: "#003366" },
-  { key: "programme", label: "Programme agenda", color: "#C59B27" },
+  { key: "programme", label: "Programme agenda", color: "#B8860B" },
   { key: "speakers", label: "Speakers & facilitators", color: "#003366" },
-  { key: "featured", label: "Featured", color: "#C59B27" },
+  { key: "featured", label: "Featured", color: "#B8860B" },
 ] as const;
 
 type SectionKey = (typeof SECTIONS)[number]["key"];
@@ -86,7 +86,7 @@ export function EventSideTabs({
       style={{ backgroundColor: tab.color }}
       className="flex items-center rounded-r-lg py-3.5 pl-1.5 pr-2 text-white shadow-lg ring-1 ring-black/5 transition-all duration-200 hover:pr-3.5 hover:shadow-xl"
     >
-      <span className="rotate-180 text-[11px] font-semibold uppercase tracking-wider [writing-mode:vertical-rl]">
+      <span className="rotate-180 text-[11px] font-semibold uppercase tracking-wider text-shadow-soft [writing-mode:vertical-rl]">
         {tab.label}
       </span>
     </button>
@@ -152,7 +152,7 @@ export function EventSideTabs({
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-2xl font-semibold text-white sm:text-3xl"
+                  className="text-2xl font-semibold text-white text-shadow-soft sm:text-3xl"
                 >
                   {open.label}
                 </motion.h2>
@@ -170,7 +170,7 @@ export function EventSideTabs({
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
-                className="mt-8"
+                className="mt-8 text-shadow-soft"
               >
                 {open.key === "about" && <AboutContent {...about} />}
                 {open.key === "programme" &&

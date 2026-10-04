@@ -168,6 +168,7 @@ export function EventEditor({
         .update({ [key]: next })
         .eq("id", event.id);
       if (error) throw error;
+      void revalidateEvents();
       toast.success(next ? "Feature enabled." : "Feature disabled.");
     } catch (error) {
       setPreferences((prev) => ({ ...prev, [key]: !next }));
@@ -187,6 +188,7 @@ export function EventEditor({
         .update({ [key]: next })
         .eq("id", event.id);
       if (error) throw error;
+      void revalidateEvents();
       toast.success(
         next ? "Section is now visible." : "Section hidden from the event page.",
       );
