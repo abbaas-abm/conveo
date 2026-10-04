@@ -3,7 +3,6 @@ import { Poppins, Roboto_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallAppButton } from "@/components/pwa/InstallAppButton";
-import { AnnouncementToaster } from "@/components/announcements/AnnouncementToaster";
 import { NotificationPrompt } from "@/components/notifications/NotificationPrompt";
 import "./globals.css";
 
@@ -69,7 +68,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
         <Toaster />
-        <AnnouncementToaster />
         <NotificationPrompt />
         <InstallAppButton />
       </body>

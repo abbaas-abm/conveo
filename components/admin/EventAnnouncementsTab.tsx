@@ -59,12 +59,7 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
       setItems((prev) => [data as Announcement, ...prev]);
       setText("");
       toast.success("Announcement posted.");
-      // Fire a Web Push to subscribers (best-effort).
-      void fetch("/api/push/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: value, url: `/events/${event.id}` }),
-      }).catch(() => {});
+      void sendPush(value);
     } catch (error) {
       console.error(error);
       toast.error(
@@ -74,6 +69,33 @@ export function EventAnnouncementsTab({ event }: { event: { id: string } }) {
       );
     } finally {
       setPosting(false);
+    }
+  }
+
+  async function sendPush(message: string) {
+    try {
+      const response = await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: message, url: `/events/${event.id}` }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        sent?: number;
+      };
+      if (!response.ok) {
+        toast.error(data.error ?? "Push notification failed to send.");
+        return;
+      }
+      if ((data.sent ?? 0) > 0) {
+        toast.success(
+          `Push sent to ${data.sent} device${data.sent === 1 ? "" : "s"}.`,
+        );
+      } else {
+        toast.message("No push subscribers to notify yet.");
+      }
+    } catch {
+      toast.error("Push notification failed to send.");
     }
   }
 

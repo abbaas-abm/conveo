@@ -3,6 +3,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 let configured = false;
 
+export function pushConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
+      process.env.VAPID_PRIVATE_KEY?.trim(),
+  );
+}
+
 function configure(): boolean {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();

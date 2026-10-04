@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { tryCreateAdminClient } from "@/lib/supabase/admin";
-import { sendPushToAll } from "@/lib/push";
+import { pushConfigured, sendPushToAll } from "@/lib/push";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!pushConfigured()) {
+    return NextResponse.json(
+      { error: "Push is not configured (missing VAPID keys)." },
+      { status: 500 },
+    );
+  }
+
+  const admin = tryCreateAdminClient();
+  if (!admin) {
+    return NextResponse.json(
+      { error: "Push requires SUPABASE_SERVICE_ROLE_KEY on the server." },
+      { status: 500 },
+    );
+  }
+
   const supabase = await createClient();
   if (!supabase) {
     return NextResponse.json(
@@ -44,12 +59,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A message is required." }, { status: 400 });
   }
 
-  const write = tryCreateAdminClient() ?? supabase;
-  const result = await sendPushToAll(write, {
+  const result = await sendPushToAll(admin, {
     title: "Centre for Student Development",
     body: text,
     url,
   });
+  console.log(`[push] sent=${result.sent} failed=${result.failed}`);
 
   return NextResponse.json({ ok: true, ...result });
 }
+
