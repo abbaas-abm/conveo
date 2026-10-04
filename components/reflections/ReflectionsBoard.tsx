@@ -57,8 +57,12 @@ export function ReflectionsBoard({
     eventId ? `/reflections?event=${eventId}` : "/reflections",
   )}`;
 
-  // Poll for new reflections in the background (no realtime). The poster's own
-  // note is added optimistically in `post()`, so it shows instantly for them.
+  // Track the newest reflection we've seen so each poll only fetches new rows
+  // (incremental). The poster's own note is added optimistically in `post()`.
+  const lastSeenRef = React.useRef<string>(
+    initialReflections[0]?.created_at ?? new Date(0).toISOString(),
+  );
+
   React.useEffect(() => {
     let active = true;
 
@@ -69,29 +73,33 @@ export function ReflectionsBoard({
         let query = supabase
           .from("reflections")
           .select("*, user:profiles!user_id(first_name,last_name)")
+          .gte("created_at", lastSeenRef.current)
           .order("created_at", { ascending: false })
-          .limit(100);
+          .limit(50);
         if (eventId) query = query.eq("event_id", eventId);
         const { data } = await query;
-        if (!active || !data) return;
+        if (!active || !data || data.length === 0) return;
+
+        const rows = data as unknown as ReflectionWithUser[];
         setNotes((prev) => {
           const map = new Map<string, ReflectionWithUser>();
-          for (const row of data as unknown as ReflectionWithUser[]) {
-            map.set(row.id, row);
-          }
-          for (const row of prev) {
-            if (!map.has(row.id)) map.set(row.id, row);
-          }
+          for (const row of prev) map.set(row.id, row);
+          for (const row of rows) map.set(row.id, row);
           return Array.from(map.values()).sort((a, b) =>
             b.created_at.localeCompare(a.created_at),
           );
         });
+
+        const newest = rows[0]?.created_at;
+        if (newest && newest > lastSeenRef.current) {
+          lastSeenRef.current = newest;
+        }
       } catch {
         // Ignore transient polling errors.
       }
     }
 
-    const id = setInterval(fetchLatest, 10_000);
+    const id = setInterval(fetchLatest, 15_000);
     return () => {
       active = false;
       clearInterval(id);
