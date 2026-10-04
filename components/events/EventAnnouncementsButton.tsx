@@ -20,7 +20,7 @@ export function EventAnnouncementsButton({
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-label="View announcements"
-        className="fixed right-4 top-20 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105 hover:bg-wits-blue-dark"
+        className="fixed right-4 top-44 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105 hover:bg-wits-blue-dark"
       >        <Megaphone className="size-5" />
         <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#d9b45b] text-[10px] font-bold text-primary">
           {announcements.length}
@@ -35,7 +35,7 @@ export function EventAnnouncementsButton({
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default bg-black/5"
           />
-          <div className="fixed right-4 top-36 z-50 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+          <div className="fixed right-4 top-56 z-50 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between gap-3 bg-primary px-4 py-3 text-white">
               <div>
                 <p className="text-sm font-semibold">Announcements</p>

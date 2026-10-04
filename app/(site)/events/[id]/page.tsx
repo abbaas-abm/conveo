@@ -9,7 +9,6 @@ import {
   MapPin,
   Video,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -173,8 +172,8 @@ export default async function EventDetailPage(
           className="lg:hidden"
         />
       )}
-      <section className="w-full bg-slate-100">
-        <div className="relative mx-auto aspect-[5/2] max-h-[560px] w-full overflow-hidden">
+      <section className="relative w-full bg-slate-900">
+        <div className="relative mx-auto aspect-[4/3] max-h-[560px] w-full overflow-hidden sm:aspect-[5/2]">
           {event.has_media && event.cover_image_url ? (
             <Image
               src={event.cover_image_url}
@@ -192,65 +191,68 @@ export default async function EventDetailPage(
               </span>
             </div>
           )}
-        </div>
-      </section>
 
-      <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 sm:p-8">
+          {/* Deep blue overlay — light enough to keep the image visible */}
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/40 to-primary/15" />
+
           <Link
             href="/events"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary"
+            className="absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-2 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:bg-white/25 sm:right-6 sm:top-6"
           >
             <ArrowLeft className="size-4" />
             Back to events
           </Link>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Badge variant="outline">
-              {event.mode === "ONLINE" ? (
-                <>
-                  <Video className="size-3" /> Online
-                </>
-              ) : (
-                <>
-                  <MapPin className="size-3" /> In Person
-                </>
+          <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 sm:px-6 sm:pb-8 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur">
+                {event.mode === "ONLINE" ? (
+                  <>
+                    <Video className="size-3" /> Online
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="size-3" /> In Person
+                  </>
+                )}
+              </span>
+
+              <h1 className="mt-2 max-w-3xl break-words text-2xl font-semibold leading-tight text-white sm:text-4xl">
+                {event.title}
+              </h1>
+
+              {event.theme && (
+                <p className="mt-1.5 text-xs font-semibold uppercase tracking-wider text-[#d9b45b] sm:text-sm">
+                  {event.theme}
+                </p>
               )}
-            </Badge>
-          </div>
 
-          <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-balance text-gray-900 sm:text-4xl">
-            {event.title}
-          </h1>
-
-          {event.theme && (
-            <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#C59B27]">
-              {event.theme}
-            </p>
-          )}
-
-          {event.has_information && (
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays className="size-4 text-primary" />
-                <span>
-                  <span className="font-medium text-gray-900">Starts</span>{" "}
-                  {formatDate(event.start_date)} ·{" "}
-                  {formatTime(event.start_date)}
-                </span>
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays className="size-4 text-primary" />
-                <span>
-                  <span className="font-medium text-gray-900">Ends</span>{" "}
-                  {formatDate(event.end_date)} · {formatTime(event.end_date)}
-                </span>
-              </span>
+              {event.has_information && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-white/85 sm:text-sm">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarDays className="size-3.5 text-[#d9b45b]" />
+                    <span>
+                      <span className="font-medium text-white">Starts</span>{" "}
+                      {formatDate(event.start_date)} ·{" "}
+                      {formatTime(event.start_date)}
+                    </span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarDays className="size-3.5 text-[#d9b45b]" />
+                    <span>
+                      <span className="font-medium text-white">Ends</span>{" "}
+                      {formatDate(event.end_date)} · {formatTime(event.end_date)}
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+      </section>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 sm:pt-10 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6 lg:order-1">
             {featuredSection}
             {aboutSection}

@@ -99,7 +99,7 @@ export function EventSideTabs({
         type="button"
         onClick={() => setNotchesOpen((value) => !value)}
         aria-label={notchesOpen ? "Close section menu" : "Open section menu"}
-        className="fixed right-4 top-36 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105"
+        className="fixed right-4 top-60 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105"
       >
         {notchesOpen ? <X className="size-5" /> : <Info className="size-5" />}
       </button>
