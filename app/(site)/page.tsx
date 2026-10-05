@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Hero } from "@/components/home/Hero";
+import { LatestEventHero } from "@/components/home/LatestEventHero";
 import { CoreUnits } from "@/components/home/CoreUnits";
 import { FeaturedEventSection } from "@/components/home/FeaturedEventSection";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
@@ -11,7 +11,7 @@ export const revalidate = 60;
 export default function HomePage() {
   return (
     <div className="pwa:hidden">
-      <Hero />
+      <LatestEventHero />
       <Suspense
         fallback={
           <section className="border-b border-gray-200 bg-white py-16 sm:py-20">
