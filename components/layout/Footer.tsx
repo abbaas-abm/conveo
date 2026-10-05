@@ -4,7 +4,6 @@ import { Clock, Mail, Phone } from "lucide-react";
 
 const QUICK_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/events", label: "Events" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

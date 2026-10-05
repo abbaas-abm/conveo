@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import {
+  ArrowRight,
   Building2,
+  CalendarDays,
   HeartHandshake,
+  MapPin,
   ShieldCheck,
   Sparkles,
   Users,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CoreUnits } from "@/components/home/CoreUnits";
+import { FeaturedScroll } from "@/components/about/FeaturedScroll";
+import { getCachedEventFeatured, getCachedLatestEvent } from "@/lib/data";
+import { formatDate, formatTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "About CSD" };
 export const revalidate = 3600;
@@ -57,7 +66,13 @@ const PILLARS: { icon: LucideIcon; title: string; text: string }[] = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const event = await getCachedLatestEvent();
+  const featured = event ? await getCachedEventFeatured(event.id) : [];
+  const eventImage = event?.has_media
+    ? (event.featured_image_url ?? event.cover_image_url)
+    : null;
+
   return (
     <>
       <section className="relative overflow-hidden bg-primary text-white">
@@ -87,6 +102,72 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {event && (
+        <section className="bg-white py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C59B27]">
+                Our latest event
+              </span>
+              <h2 className="mt-3 text-2xl font-semibold leading-tight text-gray-900 sm:text-3xl">
+                {event.title}
+              </h2>
+              {event.theme && (
+                <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-[#C59B27]">
+                  {event.theme}
+                </p>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="size-4 text-primary" />
+                  {formatDate(event.start_date)} ·{" "}
+                  {formatTime(event.start_date)}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  {event.mode === "ONLINE" ? (
+                    <Video className="size-4 text-primary" />
+                  ) : (
+                    <MapPin className="size-4 text-primary" />
+                  )}
+                  {event.mode === "ONLINE"
+                    ? "Online"
+                    : (event.venue ?? "Wits Campus")}
+                </span>
+              </div>
+              {event.description && (
+                <p className="mt-5 text-base leading-relaxed text-gray-600">
+                  {event.description}
+                </p>
+              )}
+              <Button asChild className="mt-6">
+                <Link href={`/events/${event.id}`}>
+                  View event
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+
+            {featured.length > 0 ? (
+              <div className="mt-14 sm:mt-20">
+                <FeaturedScroll items={featured} />
+              </div>
+            ) : eventImage ? (
+              <div className="mt-12 overflow-hidden rounded-2xl border border-gray-200 shadow-xl">
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src={eventImage}
+                    alt={event.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 1024px"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      )}
 
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
@@ -159,6 +240,8 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      
 
       <CoreUnits />
     </>

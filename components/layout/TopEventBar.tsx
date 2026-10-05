@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { splitDuration } from "@/lib/utils";
@@ -16,7 +15,6 @@ interface TopEvent {
 export function TopEventBar({ event }: { event: TopEvent | null }) {
   const [seconds, setSeconds] = React.useState<number | null>(null);
   const [hidden, setHidden] = React.useState(false);
-  const pathname = usePathname();
 
   // Live countdown.
   React.useEffect(() => {
@@ -88,8 +86,7 @@ export function TopEventBar({ event }: { event: TopEvent | null }) {
     };
   }, [event]);
 
-  // The homepage has its own full event hero, so the bar would be redundant.
-  if (pathname === "/" || !event || hidden) return null;
+  if (!event || hidden) return null;
 
   const duration = seconds === null ? null : splitDuration(seconds);
   const countdown =

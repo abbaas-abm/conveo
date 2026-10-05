@@ -72,7 +72,7 @@ export async function LatestEventHero() {
               <HeroCountdown initialSeconds={secondsUntil(event.start_date)} />
             </div>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-9">
               <Button
                 asChild
                 size="lg"
@@ -82,14 +82,6 @@ export async function LatestEventHero() {
                   Register now
                   <ArrowRight className="size-4" />
                 </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white"
-              >
-                <Link href="/events">Explore all events</Link>
               </Button>
             </div>
           </div>

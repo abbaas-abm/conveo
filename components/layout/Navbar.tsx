@@ -13,7 +13,6 @@ import type { Profile } from "@/lib/types";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/events", label: "Events" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
