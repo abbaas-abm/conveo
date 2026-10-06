@@ -2,13 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import {
-  CheckCircle2,
-  ChevronDown,
-  Clock,
-  MessageSquare,
-  UserRound,
-} from "lucide-react";
+import { CheckCircle2, ChevronDown, Clock, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +67,7 @@ export function QnaPanel() {
         .from("qna")
         .select(QNA_SELECT)
         .eq("event_id", eventId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       if (active) {
         setQuestions((data ?? []) as unknown as QnaQuestionWithRelations[]);
       }
@@ -109,12 +103,12 @@ export function QnaPanel() {
           prev.some((item) => item.id === row.id)
             ? prev
             : [
+                ...prev,
                 {
                   ...row,
                   user: user ?? null,
                   speaker: speakerRes.data ?? null,
                 } as QnaQuestionWithRelations,
-                ...prev,
               ],
         );
       },
@@ -252,40 +246,46 @@ export function QnaPanel() {
               [question.user?.first_name, question.user?.last_name]
                 .filter(Boolean)
                 .join(" ") || "Attendee";
-            const speaker = question.speaker
-              ? [question.speaker.title, question.speaker.first_name, question.speaker.last_name]
+            const speakerName = question.speaker
+              ? [question.speaker.first_name, question.speaker.last_name]
                   .filter(Boolean)
                   .join(" ")
               : null;
+            const speakerTitle = question.speaker?.title ?? null;
             return (
-              <Card key={question.id} className="border-gray-200 p-4">
+              <Card key={question.id} className="border-gray-200 p-3.5">
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : question.id)}
                   className="flex w-full items-start gap-3 text-left"
                 >
-                  <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                  <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
                     {question.speaker?.avatar_url ? (
                       <Image
                         src={question.speaker.avatar_url}
-                        alt={speaker ?? ""}
+                        alt={speakerName ?? ""}
                         fill
-                        sizes="40px"
+                        sizes="36px"
                         className="object-cover"
                       />
-                    ) : (
+                    ) : question.speaker ? (
                       initials(
-                        question.user?.first_name,
-                        question.user?.last_name,
+                        question.speaker.first_name,
+                        question.speaker.last_name,
                       )
+                    ) : (
+                      <MessageSquare className="size-4" />
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-medium text-gray-900">
-                        {name}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-gray-900">
+                        {speakerName ?? "General question"}
                       </p>
-                      <Badge variant={question.answered ? "success" : "secondary"}>
+                      <Badge
+                        variant={question.answered ? "success" : "secondary"}
+                        className="shrink-0"
+                      >
                         {question.answered ? (
                           <>
                             <CheckCircle2 className="size-3" /> Answered
@@ -297,6 +297,9 @@ export function QnaPanel() {
                         )}
                       </Badge>
                     </div>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      From {name}
+                    </p>
                     <p
                       className={cn(
                         "mt-1.5 text-sm leading-relaxed text-gray-700",
@@ -305,16 +308,15 @@ export function QnaPanel() {
                     >
                       {question.question}
                     </p>
-                    <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <UserRound className="size-3.5" />
-                        {speaker ? `To ${speaker}` : "General question"}
-                      </span>
-                      <span>
-                        {formatDate(question.created_at)} ·{" "}
-                        {formatTime(question.created_at)}
-                      </span>
-                    </p>
+                    {expanded ? (
+                      <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+                        {speakerTitle ? <p>{speakerTitle}</p> : null}
+                        <p>
+                          {formatDate(question.created_at)} ·{" "}
+                          {formatTime(question.created_at)}
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                   <ChevronDown
                     className={cn(
@@ -324,15 +326,19 @@ export function QnaPanel() {
                   />
                 </button>
 
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    size="sm"
-                    variant={question.answered ? "outline" : "default"}
-                    onClick={() => toggleAnswered(question)}
-                  >
-                    {question.answered ? "Mark as pending" : "Mark as answered"}
-                  </Button>
-                </div>
+                {expanded ? (
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant={question.answered ? "outline" : "default"}
+                      onClick={() => toggleAnswered(question)}
+                    >
+                      {question.answered
+                        ? "Mark as pending"
+                        : "Mark as answered"}
+                    </Button>
+                  </div>
+                ) : null}
               </Card>
             );
           })}
