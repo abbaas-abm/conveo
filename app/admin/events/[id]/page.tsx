@@ -5,6 +5,12 @@ import { EventEditor } from "@/components/admin/EventEditor";
 
 export const metadata: Metadata = { title: "Admin · Edit Event" };
 
+// The editor is where staff flip preferences during a live event, so the event
+// row must always be read fresh — never cached.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 export default async function AdminEventEditPage(
   props: PageProps<"/admin/events/[id]">,
 ) {

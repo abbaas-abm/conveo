@@ -26,7 +26,7 @@ import { EventAnnouncementsButton } from "@/components/events/EventAnnouncements
 import { SectionPlaceholder } from "@/components/events/SectionPlaceholder";
 import { getCurrentUser } from "@/lib/auth";
 import {
-  getCachedEventById,
+  getEventById,
   getCachedEventProgram,
   getCachedSpeakersByEvent,
   getEventAnnouncements,
@@ -36,15 +36,19 @@ import { cn, formatDate, formatTime, secondsUntil } from "@/lib/utils";
 import { sanitizeHtml, hasMarkup, richTextToPlain } from "@/lib/rich-text";
 import type { RegistrationStatus } from "@/lib/types";
 
-// This page shows per-user registration state and live event data, so it must
-// stay dynamic (never cached).
+// This page shows per-user registration state, live event data, and the
+// preference-driven action set, so it must stay dynamic (never cached).
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export default async function EventDetailPage(
   props: PageProps<"/events/[id]">,
 ) {
   const { id } = await props.params;
   const [
+    // The event row carries the visibility/preference flags that staff toggle
+    // during the event, so it is fetched uncached — never served stale.
     event,
     program,
     eventSpeakers,
@@ -52,7 +56,7 @@ export default async function EventDetailPage(
     featured,
     { supabase, user, profile },
   ] = await Promise.all([
-    getCachedEventById(id),
+    getEventById(id),
     getCachedEventProgram(id),
     getCachedSpeakersByEvent(id),
     getEventAnnouncements(id),

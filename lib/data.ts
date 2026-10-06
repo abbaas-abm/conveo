@@ -391,26 +391,6 @@ export const getCachedLatestEvent = unstable_cache(
 // visitors. Invalidate with revalidateTag("events") after admin edits.
 // ---------------------------------------------------------------------------
 
-export const getCachedEventById = unstable_cache(
-  async (id: string): Promise<EventRecord | null> => {
-    const supabase = createAnonClient();
-    if (!supabase) return null;
-    try {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as unknown as EventRecord) ?? null;
-    } catch {
-      return null;
-    }
-  },
-  ["public-event-by-id"],
-  { revalidate: 60, tags: ["events"] },
-);
-
 export const getCachedEventProgram = unstable_cache(
   async (eventId: string): Promise<ProgramBlockWithSpeakers[]> => {
     const supabase = createAnonClient();

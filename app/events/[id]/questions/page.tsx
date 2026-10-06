@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth";
-import { getCachedEventById, getCachedSpeakersByEvent } from "@/lib/data";
+import { getEventById, getCachedSpeakersByEvent } from "@/lib/data";
 import { EventQna } from "@/components/events/EventQna";
 
 export const metadata: Metadata = { title: "Event Q&A" };
@@ -13,7 +13,7 @@ export default async function EventQuestionsPage(
   const { id } = await props.params;
 
   const [event, speakers, { user, profile }] = await Promise.all([
-    getCachedEventById(id),
+    getEventById(id),
     getCachedSpeakersByEvent(id),
     getCurrentUser(),
   ]);
