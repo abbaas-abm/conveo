@@ -4,12 +4,13 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { History, LogOut, ScanLine } from "lucide-react";
+import { History, LogOut, MessageSquare, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScannerPanel } from "@/components/volunteer/ScannerPanel";
 import { HistoryPanel } from "@/components/volunteer/HistoryPanel";
+import { QnaPanel } from "@/components/volunteer/QnaPanel";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 
@@ -78,10 +79,14 @@ export function VolunteerDashboard({
 
       <main className="mx-auto max-w-2xl px-4 py-6">
         <Tabs defaultValue="scanner">
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-white p-1.5 shadow-sm">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-white p-1.5 shadow-sm">
             <TabsTrigger value="scanner" className="flex-col gap-1 py-2 text-xs">
               <ScanLine className="size-4" />
               Scanner
+            </TabsTrigger>
+            <TabsTrigger value="qna" className="flex-col gap-1 py-2 text-xs">
+              <MessageSquare className="size-4" />
+              Q&amp;A
             </TabsTrigger>
             <TabsTrigger value="history" className="flex-col gap-1 py-2 text-xs">
               <History className="size-4" />
@@ -91,6 +96,9 @@ export function VolunteerDashboard({
 
           <TabsContent value="scanner">
             <ScannerPanel volunteerId={volunteerId} />
+          </TabsContent>
+          <TabsContent value="qna">
+            <QnaPanel />
           </TabsContent>
           <TabsContent value="history">
             <HistoryPanel volunteerId={volunteerId} />

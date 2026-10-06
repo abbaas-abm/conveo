@@ -9,6 +9,7 @@ import {
   FileSignature,
   FileText,
   LogOut,
+  MessageSquare,
   StickyNote,
   User,
   Users,
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/reflections", label: "Reflections", icon: StickyNote },
   { href: "/admin/pledges", label: "Pledges", icon: FileSignature },
+  { href: "/admin/questions", label: "Questions", icon: MessageSquare },
 ];
 
 export function AdminShell({

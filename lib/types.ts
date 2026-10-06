@@ -60,6 +60,7 @@ export interface EventRecord {
   has_feedback: boolean;
   has_featured: boolean;
   has_side_notch: boolean;
+  has_questions: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -168,4 +169,25 @@ export interface Feedback {
   rating: number;
   comment: string | null;
   created_at: string;
+}
+
+export interface QnaQuestion {
+  id: string;
+  event_id: string;
+  user_id: string;
+  speaker_id: string | null;
+  question: string;
+  answered: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QnaQuestionWithRelations extends QnaQuestion {
+  user: { first_name: string | null; last_name: string | null } | null;
+  speaker: {
+    first_name: string;
+    last_name: string;
+    title: string | null;
+    avatar_url: string | null;
+  } | null;
 }

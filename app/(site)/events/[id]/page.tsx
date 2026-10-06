@@ -357,6 +357,28 @@ export default async function EventDetailPage(
                   </Button>
                 )}
 
+                {event.has_questions && isRegistered && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="mt-3 w-full"
+                  >
+                    <Link
+                      href={
+                        user
+                          ? `/events/${event.id}/questions`
+                          : `/login?redirectTo=${encodeURIComponent(
+                              `/events/${event.id}/questions`,
+                            )}`
+                      }
+                    >
+                      Q&amp;A
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                )}
+
                 {event.has_pledges && isRegistered && (
                   <Button
                     asChild
@@ -398,7 +420,8 @@ export default async function EventDetailPage(
             {isRegistered &&
               (event.has_reflections ||
                 event.has_pledges ||
-                event.has_feedback) && (
+                event.has_feedback ||
+                event.has_questions) && (
                 <Card className="border-gray-200 p-5 lg:hidden">
                   <h2 className="text-sm font-semibold text-gray-900">
                     Actions
@@ -409,6 +432,13 @@ export default async function EventDetailPage(
                         href={`/reflections?event=${event.id}`}
                         icon={MessageSquare}
                         label="Reflections"
+                      />
+                    )}
+                    {event.has_questions && (
+                      <ActionButton
+                        href={`/events/${event.id}/questions`}
+                        icon={MessageSquare}
+                        label="Q&A"
                       />
                     )}
                     {event.has_pledges && (
