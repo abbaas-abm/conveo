@@ -44,7 +44,8 @@ export async function HomeFeaturedSection() {
               </span>
             </h2>
             <p className="mt-3 text-base leading-relaxed text-gray-600">
-              Some exciting moments taking place at the {event.title} event! Don't miss out!
+              Some exciting moments taking place at the {event.title} event!
+              Don&apos;t miss out!
             </p>
           </div>
           <Button asChild variant="outline">

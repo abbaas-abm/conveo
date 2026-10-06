@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CoreUnits } from "@/components/home/CoreUnits";
 import { FeaturedScroll } from "@/components/about/FeaturedScroll";
+import { AboutHero } from "@/components/about/AboutHero";
 import { getCachedEventFeatured, getCachedLatestEvent } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/utils";
 
@@ -75,33 +76,62 @@ export default async function AboutPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-primary text-white">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-20">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#d9b45b]">
-              About the CSD
-            </span>
-            <h1 className="mt-3 text-3xl font-bold leading-tight text-balance text-white sm:text-4xl lg:text-5xl">
-              A dynamic, innovative centre for student development
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              The Centre for Student Development integrates and enhances student
-              development and support services.
-            </p>
-          </div>
+      {event ? (
+        <section className="relative overflow-hidden bg-primary text-white">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-20">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d9b45b]">
+                Our latest event
+              </span>
+              <h1 className="mt-3 text-3xl font-bold leading-tight text-balance text-white sm:text-4xl lg:text-5xl">
+                {event.title}
+              </h1>
+              {event.theme && (
+                <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-[#C59B27]">
+                  {event.theme}
+                </p>
+              )}
+              {event.description && (
+                <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
+                  {event.description}
+                </p>
+              )}
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/85 sm:text-base">
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="size-4 text-[#d9b45b]" />
+                  <span>
+                    <span className="font-medium text-white">Starts</span>{" "}
+                    {formatDate(event.start_date)} ·{" "}
+                    {formatTime(event.start_date)}
+                  </span>
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="size-4 text-[#d9b45b]" />
+                  <span>
+                    <span className="font-medium text-white">Ends</span>{" "}
+                    {formatDate(event.end_date)} · {formatTime(event.end_date)}
+                  </span>
+                </span>
+              </div>
+            </div>
 
-          <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/15 shadow-2xl lg:justify-self-end lg:max-w-md">
-            <Image
-              src="/img-about-1.jpg"
-              alt="Wits students at a CSD event"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 480px"
-              className="object-cover"
-            />
+            {eventImage && (
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/15 shadow-2xl lg:justify-self-end lg:max-w-md">
+                <Image
+                  src={eventImage}
+                  alt={event.title}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 480px"
+                  className="object-cover"
+                />
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <AboutHero />
+      )}
 
       {event && (
         <section className="bg-white py-16 sm:py-20">
