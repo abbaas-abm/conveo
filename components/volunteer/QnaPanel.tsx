@@ -34,7 +34,7 @@ export function QnaPanel() {
   const [questions, setQuestions] = React.useState<QnaQuestionWithRelations[]>(
     [],
   );
-  const [filter, setFilter] = React.useState<Filter>("ALL");
+  const [filter, setFilter] = React.useState<Filter>("UNANSWERED");
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -195,9 +195,9 @@ export function QnaPanel() {
       <div className="flex flex-wrap gap-2">
         {(
           [
-            { key: "ALL", label: `All (${counts.all})` },
             { key: "UNANSWERED", label: `Unanswered (${counts.unanswered})` },
             { key: "ANSWERED", label: `Answered (${counts.answered})` },
+            { key: "ALL", label: `All (${counts.all})` },
           ] as { key: Filter; label: string }[]
         ).map((tab) => (
           <button
