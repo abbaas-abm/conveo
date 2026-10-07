@@ -6,15 +6,18 @@ import {
   CheckCircle2,
   Info,
   Loader2,
+  Mail,
   ScanLine,
+  Search,
   UserRound,
   X,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { initials } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 import type { EventRecord, UserPosition } from "@/lib/types";
 
 type Phase =
@@ -24,6 +27,8 @@ type Phase =
   | "no-registration"
   | "already-checked-in"
   | "checked-in";
+
+type Mode = "scan" | "email";
 
 const POSITION_LABELS: Record<UserPosition, string> = {
   STUDENT: "Student",
@@ -53,9 +58,11 @@ export function QrScanner({
   const streamRef = React.useRef<MediaStream | null>(null);
   const lockedRef = React.useRef(false);
 
+  const [mode, setMode] = React.useState<Mode>("scan");
   const [phase, setPhase] = React.useState<Phase>("scanning");
   const [attendee, setAttendee] = React.useState<ScannedAttendee | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [email, setEmail] = React.useState("");
 
   const stopCamera = React.useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -64,51 +71,72 @@ export function QrScanner({
     streamRef.current = null;
   }, []);
 
-  const handleDecoded = React.useCallback(
-    async (raw: string) => {
+  const resetInput = React.useCallback(() => {
+    lockedRef.current = false;
+    setAttendee(null);
+    setError(null);
+    setPhase("scanning");
+  }, []);
+
+  // Resolve an attendee from either a scanned user id or a manually entered
+  // email, then apply the exact same registration checks for both paths.
+  const resolveAttendee = React.useCallback(
+    async (input: { userId: string } | { email: string }) => {
       if (lockedRef.current) return;
       lockedRef.current = true;
       setPhase("loading");
+      setError(null);
       try {
-        const userId = raw.trim();
         const supabase = createClient();
-        const [{ data: profile }, { data: registration }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("first_name,last_name")
-            .eq("id", userId)
-            .maybeSingle(),
-          supabase
-            .from("registrations")
-            .select("position, status")
-            .eq("event_id", event.id)
-            .eq("attendee_id", userId)
-            .maybeSingle(),
-        ]);
+        const { data: profile } =
+          "userId" in input
+            ? await supabase
+                .from("profiles")
+                .select("id, first_name, last_name")
+                .eq("id", input.userId)
+                .maybeSingle()
+            : await supabase
+                .from("profiles")
+                .select("id, first_name, last_name")
+                .eq("email", input.email.trim().toLowerCase())
+                .maybeSingle();
 
-        if (!profile || !registration || registration.status !== "CONFIRMED") {
-          setAttendee(
-            profile
-              ? {
-                  id: userId,
-                  name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim(),
-                  position: (registration?.position as UserPosition) ?? null,
-                }
-              : null,
-          );
+        if (!profile) {
+          setAttendee(null);
+          setPhase("no-registration");
+          return;
+        }
+
+        const { data: registration } = await supabase
+          .from("registrations")
+          .select("position, status")
+          .eq("event_id", event.id)
+          .eq("attendee_id", profile.id)
+          .maybeSingle();
+
+        const name = `${profile.first_name ?? ""} ${
+          profile.last_name ?? ""
+        }`.trim();
+
+        if (!registration || registration.status !== "CONFIRMED") {
+          setAttendee({
+            id: profile.id,
+            name,
+            position: (registration?.position as UserPosition) ?? null,
+          });
           setPhase("no-registration");
           return;
         }
 
         setAttendee({
-          id: userId,
-          name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim(),
+          id: profile.id,
+          name,
           position: registration.position as UserPosition,
         });
         setPhase("found");
       } catch (err) {
         console.error(err);
-        setError("Could not read that code. Please try again.");
+        setError("Could not look up that attendee. Please try again.");
         setPhase("no-registration");
       }
     },
@@ -116,6 +144,10 @@ export function QrScanner({
   );
 
   React.useEffect(() => {
+    // Only run the camera while scanning. In email mode it stays off so the
+    // device isn't held open and the form can take over the screen.
+    if (mode !== "scan") return;
+
     let cancelled = false;
 
     (async () => {
@@ -148,7 +180,9 @@ export function QrScanner({
             ctx.drawImage(v, 0, 0, width, height);
             const image = ctx.getImageData(0, 0, width, height);
             const code = jsQR(image.data, width, height);
-            if (code?.data) void handleDecoded(code.data);
+            if (code?.data) {
+              void resolveAttendee({ userId: code.data.trim() });
+            }
           }
           rafRef.current = requestAnimationFrame(tick);
         };
@@ -163,13 +197,19 @@ export function QrScanner({
       cancelled = true;
       stopCamera();
     };
-  }, [handleDecoded, stopCamera]);
+  }, [mode, resolveAttendee, stopCamera]);
 
-  function scanNext() {
-    lockedRef.current = false;
-    setAttendee(null);
-    setError(null);
-    setPhase("scanning");
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    setMode(next);
+    resetInput();
+  }
+
+  async function handleEmailSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const value = email.trim();
+    if (!value) return;
+    await resolveAttendee({ email: value });
   }
 
   async function checkIn() {
@@ -219,13 +259,18 @@ export function QrScanner({
     }
   }
 
+  const resetLabel = mode === "scan" ? "Scan next" : "Next attendee";
+
   return (
     <div className="fixed inset-0 z-50 bg-black">
       <video
         ref={videoRef}
         playsInline
         muted
-        className="absolute inset-0 h-full w-full object-cover"
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover",
+          mode === "email" && "opacity-0",
+        )}
       />
       <canvas ref={canvasRef} className="hidden" />
 
@@ -237,14 +282,44 @@ export function QrScanner({
           <p className="text-xs font-medium uppercase tracking-wider text-primary/70">
             Check-in
           </p>
+          <div className="mx-auto mt-3 inline-flex rounded-full bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => switchMode("scan")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
+                mode === "scan"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900",
+              )}
+            >
+              <ScanLine className="size-3.5" />
+              Scan QR
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("email")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
+                mode === "email"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900",
+              )}
+            >
+              <Mail className="size-3.5" />
+              Enter email
+            </button>
+          </div>
         </header>
 
         <div className="relative flex flex-1 items-center justify-center">
-          <div className="size-64 rounded-2xl border-4 border-white shadow-[0_0_0_9999px_rgba(255,255,255,0.65)]">
-            {phase === "scanning" && (
-              <ScanLine className="mx-auto mt-28 size-10 text-primary/50" />
-            )}
-          </div>
+          {mode === "scan" && (
+            <div className="size-64 rounded-2xl border-4 border-white shadow-[0_0_0_9999px_rgba(255,255,255,0.65)]">
+              {phase === "scanning" && (
+                <ScanLine className="mx-auto mt-28 size-10 text-primary/50" />
+              )}
+            </div>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -260,10 +335,34 @@ export function QrScanner({
             <p className="text-center text-sm text-destructive">{error}</p>
           )}
 
-          {phase === "scanning" && (
+          {phase === "scanning" && mode === "scan" && (
             <p className="text-center text-sm text-gray-600">
               Point the camera at an attendee&apos;s QR badge.
             </p>
+          )}
+
+          {phase === "scanning" && mode === "email" && (
+            <form onSubmit={handleEmailSubmit} className="space-y-3">
+              <Input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoFocus
+                placeholder="attendee@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11 text-base"
+              />
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={!email.trim()}
+              >
+                <Search className="size-5" />
+                Find attendee
+              </Button>
+            </form>
           )}
 
           {phase === "loading" && (
@@ -298,7 +397,7 @@ export function QrScanner({
                   variant="outline"
                   size="lg"
                   className="w-28"
-                  onClick={scanNext}
+                  onClick={resetInput}
                 >
                   Cancel
                 </Button>
@@ -329,9 +428,9 @@ export function QrScanner({
                   </p>
                 </div>
               </div>
-              <Button size="lg" className="w-full" onClick={scanNext}>
+              <Button size="lg" className="w-full" onClick={resetInput}>
                 <ScanLine className="size-5" />
-                Scan next
+                {resetLabel}
               </Button>
             </div>
           )}
@@ -351,9 +450,9 @@ export function QrScanner({
                   </p>
                 </div>
               </div>
-              <Button size="lg" className="w-full" onClick={scanNext}>
+              <Button size="lg" className="w-full" onClick={resetInput}>
                 <ScanLine className="size-5" />
-                Scan next
+                {resetLabel}
               </Button>
             </div>
           )}
@@ -373,9 +472,9 @@ export function QrScanner({
                   </p>
                 </div>
               </div>
-              <Button size="lg" className="w-full" onClick={scanNext}>
+              <Button size="lg" className="w-full" onClick={resetInput}>
                 <ScanLine className="size-5" />
-                Scan next
+                {resetLabel}
               </Button>
             </div>
           )}
