@@ -1,5 +1,10 @@
 export { cn } from "cn";
 
+// All CSD events happen in South Africa. Pin the display timezone so
+// server-rendered pages (running in UTC in Docker) match the admin editor
+// and the generated attendee tags instead of showing a 2-hour offset.
+const TIME_ZONE = "Africa/Johannesburg";
+
 export function formatDate(
   value: string | Date,
   opts: Intl.DateTimeFormatOptions = {
@@ -10,12 +15,16 @@ export function formatDate(
   },
 ) {
   const date = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat("en-ZA", opts).format(date);
+  return new Intl.DateTimeFormat("en-ZA", {
+    timeZone: TIME_ZONE,
+    ...opts,
+  }).format(date);
 }
 
 export function formatTime(value: string | Date) {
   const date = typeof value === "string" ? new Date(value) : value;
   return new Intl.DateTimeFormat("en-ZA", {
+    timeZone: TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
