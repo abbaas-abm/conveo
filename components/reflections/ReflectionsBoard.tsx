@@ -57,55 +57,9 @@ export function ReflectionsBoard({
     eventId ? `/reflections?event=${eventId}` : "/reflections",
   )}`;
 
-  // Track the newest reflection we've seen so each poll only fetches new rows
-  // (incremental). The poster's own note is added optimistically in `post()`.
-  const lastSeenRef = React.useRef<string>(
-    initialReflections[0]?.created_at ?? new Date(0).toISOString(),
-  );
-
-  React.useEffect(() => {
-    let active = true;
-
-    async function fetchLatest() {
-      if (typeof document !== "undefined" && document.hidden) return;
-      try {
-        const supabase = createClient();
-        let query = supabase
-          .from("reflections")
-          .select("*, user:profiles!user_id(first_name,last_name)")
-          .gte("created_at", lastSeenRef.current)
-          .order("created_at", { ascending: false })
-          .limit(50);
-        if (eventId) query = query.eq("event_id", eventId);
-        const { data } = await query;
-        if (!active || !data || data.length === 0) return;
-
-        const rows = data as unknown as ReflectionWithUser[];
-        setNotes((prev) => {
-          const map = new Map<string, ReflectionWithUser>();
-          for (const row of prev) map.set(row.id, row);
-          for (const row of rows) map.set(row.id, row);
-          return Array.from(map.values()).sort((a, b) =>
-            b.created_at.localeCompare(a.created_at),
-          );
-        });
-
-        const newest = rows[0]?.created_at;
-        if (newest && newest > lastSeenRef.current) {
-          lastSeenRef.current = newest;
-        }
-      } catch {
-        // Ignore transient polling errors.
-      }
-    }
-
-    const id = setInterval(fetchLatest, 15_000);
-    return () => {
-      active = false;
-      clearInterval(id);
-    };
-  }, [eventId]);
-
+  // The wall is loaded once on the server and refreshed only by the poster's
+  // own optimistic insert below. There is no polling — the only live wall is
+  // the admin "Present" view.
   async function post(e: React.FormEvent) {
     e.preventDefault();
     if (!currentUser) {

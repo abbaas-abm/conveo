@@ -41,6 +41,20 @@ export async function POST(request: Request) {
     );
   }
 
+  // One pledge per person per event.
+  const { data: existingPledge } = await supabase
+    .from("pledges")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (existingPledge) {
+    return NextResponse.json(
+      { error: "You have already signed the pledge for this event." },
+      { status: 409 },
+    );
+  }
+
   const { data: pledge, error } = await supabase
     .from("pledges")
     .insert({
@@ -52,6 +66,13 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !pledge) {
+    // Unique-violation fallback (e.g. two requests racing).
+    if (error?.code === "23505") {
+      return NextResponse.json(
+        { error: "You have already signed the pledge for this event." },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { error: error?.message ?? "Could not save your pledge." },
       { status: 500 },

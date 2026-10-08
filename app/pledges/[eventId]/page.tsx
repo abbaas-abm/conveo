@@ -10,13 +10,24 @@ export default async function PledgePage(
   props: PageProps<"/pledges/[eventId]">,
 ) {
   const { eventId } = await props.params;
-  const [event, { profile }] = await Promise.all([
+  const [event, { supabase, profile }] = await Promise.all([
     getEventById(eventId),
     getCurrentUser(),
   ]);
 
   if (!event) notFound();
   if (!event.has_pledges) redirect("/");
+
+  let alreadyPledged = false;
+  if (supabase && profile) {
+    const { data } = await supabase
+      .from("pledges")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", profile.id)
+      .maybeSingle();
+    alreadyPledged = Boolean(data);
+  }
 
   const currentUser = profile
     ? {
@@ -35,6 +46,7 @@ export default async function PledgePage(
       eventTitle={event.title}
       eventDescription={event.description}
       currentUser={currentUser}
+      alreadyPledged={alreadyPledged}
     />
   );
 }

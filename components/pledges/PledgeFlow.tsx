@@ -20,15 +20,18 @@ export function PledgeFlow({
   eventTitle,
   eventDescription,
   currentUser,
+  alreadyPledged,
 }: {
   eventId: string;
   eventTitle: string;
   eventDescription: string | null;
   currentUser: CurrentUser | null;
+  alreadyPledged: boolean;
 }) {
   const router = useRouter();
   const [text, setText] = React.useState("");
   const [submitted, setSubmitted] = React.useState(false);
+  const [already, setAlready] = React.useState(alreadyPledged);
   const [submitting, setSubmitting] = React.useState(false);
 
   const signInHref = `/login?redirectTo=${encodeURIComponent(
@@ -52,6 +55,10 @@ export function PledgeFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eventId, pledgeText: value }),
       });
+      if (response.status === 409) {
+        setAlready(true);
+        return;
+      }
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as {
           error?: string;
@@ -86,7 +93,27 @@ export function PledgeFlow({
       </header>
 
       <main className="mx-auto max-w-3xl px-4">
-        {submitted ? (
+        {already ? (
+          <div className="flex flex-col items-center rounded-2xl border border-white/15 bg-white/5 px-6 py-14 text-center">
+            <span className="flex size-16 items-center justify-center rounded-full bg-[#C59B27]">
+              <CheckCircle2 className="size-8 text-primary" />
+            </span>
+            <h2 className="mt-5 text-2xl font-semibold text-white">
+              Pledge already signed
+            </h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-white/80">
+              You&apos;ve already signed the pledge for this event. Your official
+              certificate was emailed to you, and you can only pledge once.
+            </p>
+            <Button
+              asChild
+              variant="outline"
+              className="mt-6 border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
+            >
+              <Link href={`/events/${eventId}`}>Back to event</Link>
+            </Button>
+          </div>
+        ) : submitted ? (
           <div className="flex flex-col items-center rounded-2xl border border-white/15 bg-white/5 px-6 py-14 text-center">
             <span className="flex size-16 items-center justify-center rounded-full bg-[#C59B27]">
               <CheckCircle2 className="size-8 text-primary" />
@@ -123,7 +150,7 @@ export function PledgeFlow({
         )}
       </main>
 
-      {!submitted && (
+      {!submitted && !already && (
         <div className="fixed inset-x-0 bottom-0 z-40 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:static sm:mx-auto sm:mt-8 sm:max-w-3xl sm:p-0">
           <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur sm:p-4">
             {currentUser ? (

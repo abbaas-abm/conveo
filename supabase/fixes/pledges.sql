@@ -15,6 +15,24 @@ create table if not exists public.pledges (
 create index if not exists idx_pledges_event
   on public.pledges (event_id, created_at desc);
 
+-- One pledge per person per event. De-duplicate any pre-existing rows first so
+-- the unique index can be created safely (keeps the earliest pledge).
+delete from public.pledges
+where id in (
+  select id from (
+    select id,
+           row_number() over (
+             partition by user_id, event_id order by created_at asc
+           ) as rn
+    from public.pledges
+    where user_id is not null and event_id is not null
+  ) ranked
+  where ranked.rn > 1
+);
+
+create unique index if not exists ux_pledges_user_event
+  on public.pledges (user_id, event_id);
+
 alter table public.pledges enable row level security;
 
 drop policy if exists "Anyone can view pledges" on public.pledges;

@@ -43,6 +43,14 @@ interface ScannedAttendee {
   position: UserPosition | null;
 }
 
+interface RegistrantSuggestion {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  position: string | null;
+}
+
 export function QrScanner({
   event,
   volunteerId,
@@ -63,6 +71,12 @@ export function QrScanner({
   const [attendee, setAttendee] = React.useState<ScannedAttendee | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [email, setEmail] = React.useState("");
+  const [suggestions, setSuggestions] = React.useState<RegistrantSuggestion[]>(
+    [],
+  );
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [searching, setSearching] = React.useState(false);
+  const searchSeq = React.useRef(0);
 
   const stopCamera = React.useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -86,6 +100,7 @@ export function QrScanner({
       lockedRef.current = true;
       setPhase("loading");
       setError(null);
+      setShowSuggestions(false);
       try {
         const supabase = createClient();
         const { data: profile } =
@@ -199,9 +214,53 @@ export function QrScanner({
     };
   }, [mode, resolveAttendee, stopCamera]);
 
+  // Debounced registrant search for the manual email field. Runs only while
+  // typing in email mode, ignores stale responses, and caps the payload.
+  React.useEffect(() => {
+    if (mode !== "email" || phase !== "scanning") return;
+    const term = email.trim();
+    if (term.length < 2) return;
+
+    const seq = ++searchSeq.current;
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const supabase = createClient();
+        const { data, error: rpcError } = await supabase.rpc(
+          "search_event_registrants",
+          { p_event_id: event.id, p_term: term, p_limit: 6 },
+        );
+        if (seq !== searchSeq.current) return;
+        if (rpcError) throw rpcError;
+        const rows = (data ?? []) as RegistrantSuggestion[];
+        setSuggestions(rows);
+        setShowSuggestions(rows.length > 0);
+      } catch {
+        if (seq === searchSeq.current) {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } finally {
+        if (seq === searchSeq.current) setSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [email, mode, phase, event.id]);
+
+  function selectSuggestion(suggestion: RegistrantSuggestion) {
+    setEmail(suggestion.email ?? "");
+    setSuggestions([]);
+    setShowSuggestions(false);
+    void resolveAttendee({ userId: suggestion.id });
+  }
+
   function switchMode(next: Mode) {
     if (next === mode) return;
     setMode(next);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSearching(false);
     resetInput();
   }
 
@@ -343,16 +402,75 @@ export function QrScanner({
 
           {phase === "scanning" && mode === "email" && (
             <form onSubmit={handleEmailSubmit} className="space-y-3">
-              <Input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoFocus
-                placeholder="attendee@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 text-base"
-              />
+              <div className="relative">
+                {showSuggestions && (
+                  <div className="absolute inset-x-0 bottom-full z-20 mb-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                    {suggestions.map((suggestion) => {
+                      const suggestionName =
+                        [suggestion.first_name, suggestion.last_name]
+                          .filter(Boolean)
+                          .join(" ") ||
+                        suggestion.email ||
+                        "Attendee";
+                      return (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          onClick={() => selectSuggestion(suggestion)}
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-gray-50"
+                        >
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                            {initials(
+                              suggestion.first_name ?? "",
+                              suggestion.last_name ?? "",
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-gray-900">
+                              {suggestionName}
+                            </span>
+                            {suggestion.email && (
+                              <span className="block truncate text-xs text-gray-500">
+                                {suggestion.email}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <Input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  autoFocus
+                  placeholder="Name or email…"
+                  value={email}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEmail(value);
+                    if (value.trim().length < 2) {
+                      setSuggestions([]);
+                      setShowSuggestions(false);
+                      setSearching(false);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (suggestions.length > 0) setShowSuggestions(true);
+                  }}
+                  onBlur={() => {
+                    window.setTimeout(() => setShowSuggestions(false), 200);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setShowSuggestions(false);
+                  }}
+                  className="h-11 pr-9 text-base"
+                />
+                {searching && (
+                  <Loader2 className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
+                )}
+              </div>
               <Button
                 type="submit"
                 size="lg"
