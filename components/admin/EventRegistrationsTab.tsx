@@ -6,7 +6,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Loader2,
   Search,
+  Send,
   Users,
   UserX,
 } from "lucide-react";
@@ -36,6 +38,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { cn, formatDate, formatTime, initials } from "@/lib/utils";
 import { FACULTY_OPTIONS } from "@/lib/profile-options";
+import { toast } from "sonner";
 import type { Profile, UserPosition } from "@/lib/types";
 
 const PAGE_SIZE = 25;
@@ -106,6 +109,33 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
       active = false;
     };
   }, [event.id]);
+
+  // Admin action: generate + email the attendee tag on their behalf, then
+  // populate the row with the returned tag URL.
+  const sendTag = React.useCallback(async (registrationId: string) => {
+    const response = await fetch("/api/admin/send-tag", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationId }),
+    });
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      attendeeTagUrl?: string;
+    };
+    if (!response.ok) {
+      throw new Error(data.error ?? "Could not send the tag.");
+    }
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === registrationId
+          ? {
+              ...row,
+              attendee_tag_url: data.attendeeTagUrl ?? row.attendee_tag_url,
+            }
+          : row,
+      ),
+    );
+  }, []);
 
   const total = rows.length;
 
@@ -273,7 +303,11 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
         ) : (
           <div className="divide-y divide-gray-100">
             {pageRows.map((row) => (
-              <RegistrationListRow key={row.id} row={row} />
+              <RegistrationListRow
+                key={row.id}
+                row={row}
+                onSendTag={sendTag}
+              />
             ))}
           </div>
         )}
@@ -438,7 +472,14 @@ function VBar({ data }: { data: { name: string; value: number }[] }) {
   );
 }
 
-function RegistrationListRow({ row }: { row: RegistrationRow }) {
+function RegistrationListRow({
+  row,
+  onSendTag,
+}: {
+  row: RegistrationRow;
+  onSendTag: (registrationId: string) => Promise<void>;
+}) {
+  const [sending, setSending] = React.useState(false);
   const name =
     [row.attendee?.first_name, row.attendee?.last_name]
       .filter(Boolean)
@@ -450,6 +491,20 @@ function RegistrationListRow({ row }: { row: RegistrationRow }) {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  async function handleSendTag() {
+    setSending(true);
+    try {
+      await onSendTag(row.id);
+      toast.success(`Tag sent to ${row.attendee?.email ?? "attendee"}.`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not send the tag.",
+      );
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div className="flex items-center gap-4 px-5 py-4">
@@ -479,24 +534,41 @@ function RegistrationListRow({ row }: { row: RegistrationRow }) {
         </p>
       </div>
 
-      {row.status === "CONFIRMED" && row.attendee_tag_url ? (
-        <Button asChild variant="outline" size="sm" className="shrink-0">
-          <a
-            href={`${row.attendee_tag_url}?download`}
-            target="_blank"
-            rel="noopener noreferrer"
-            download
+      <div className="flex shrink-0 items-center gap-2">
+        {row.status === "CONFIRMED" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSendTag}
+            disabled={sending}
           >
-            <Download className="size-4" />
-            Tag
-          </a>
-        </Button>
-      ) : (
-        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-          <UserX className="size-3.5" />
-          No tag
-        </span>
-      )}
+            {sending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            Send tag
+          </Button>
+        )}
+        {row.status === "CONFIRMED" && row.attendee_tag_url ? (
+          <Button asChild variant="outline" size="sm">
+            <a
+              href={`${row.attendee_tag_url}?download`}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+            >
+              <Download className="size-4" />
+              Tag
+            </a>
+          </Button>
+        ) : (
+          <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <UserX className="size-3.5" />
+            No tag
+          </span>
+        )}
+      </div>
     </div>
   );
 }

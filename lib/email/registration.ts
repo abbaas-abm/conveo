@@ -80,7 +80,7 @@ export async function deliverRegistrationEmail({
   registrationId: string;
   data: RegistrationEmailData;
   throwOnError?: boolean;
-}) {
+}): Promise<string | null> {
   try {
     const key = process.env.PLUNK_SECRET_KEY;
     if (!key) throw new Error("PLUNK_SECRET_KEY is not set");
@@ -150,8 +150,10 @@ export async function deliverRegistrationEmail({
     if (updateError) throw updateError;
 
     console.log(`Attendee tag stored at ${publicUrl.publicUrl}`);
+    return publicUrl.publicUrl;
   } catch (error) {
     console.error("Registration confirmation email failed:", error);
     if (throwOnError) throw error;
+    return null;
   }
 }
