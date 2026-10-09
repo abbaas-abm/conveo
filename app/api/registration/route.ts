@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "This form requires you to RSVP. We couldn't find an RSVP for your email — please RSVP first, and make sure you use the same email you RSVPed with.",
+            "No RSVP found. This event requires you to RSVP. RSVP's have closed.",
         },
         { status: 403 },
       );
