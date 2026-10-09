@@ -4,6 +4,10 @@ const EVENT_BASE_URL = "https://witscsd.co.za";
 
 const SENDER = { name: "Wits CSD", email: "reminders@witscsd.co.za" };
 
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("en-ZA", {
     weekday: "short",
@@ -179,7 +183,12 @@ export async function deliverReminderEmail({
     if (!profile?.email || !event) {
       throw new Error("Missing attendee email or event details.");
     }
-    email = profile.email;
+    const to = String(profile.email).trim();
+    if (!isValidEmail(to)) {
+      console.warn(`Skipping reminder: invalid email "${profile.email}"`);
+      return { status: "failed", error: "Invalid email address", email: to };
+    }
+    email = to;
 
     const name =
       [profile.first_name, profile.last_name].filter(Boolean).join(" ") ||
@@ -218,7 +227,7 @@ export async function deliverReminderEmail({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: profile.email,
+        to,
         subject: `Reminder: ${event.title}`,
         from: SENDER,
         body: renderReminderHtml({
@@ -236,11 +245,24 @@ export async function deliverReminderEmail({
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Plunk error ${response.status}: ${text}`);
+      // Only retry transient Plunk failures. Validation errors (e.g. an
+      // invalid recipient) are reported and skipped so the queue keeps moving.
+      const retryable = response.status === 429 || response.status >= 500;
+      if (throwOnError && retryable) {
+        throw new Error(`Plunk error ${response.status}: ${text}`);
+      }
+      console.error(
+        `Reminder not sent (${response.status}) to ${to}: ${text}`,
+      );
+      return {
+        status: "failed",
+        error: `Plunk error ${response.status}`,
+        email: to,
+      };
     }
 
-    console.log(`Reminder sent for ${event.title} to ${profile.email}`);
-    return { status: "sent", email };
+    console.log(`Reminder sent for ${event.title} to ${to}`);
+    return { status: "sent", email: to };
   } catch (error) {
     console.error("Reminder email failed:", error);
     if (throwOnError) throw error;
