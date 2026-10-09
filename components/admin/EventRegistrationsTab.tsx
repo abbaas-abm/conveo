@@ -63,6 +63,15 @@ interface RegistrationRow {
   attendee: Profile | null;
 }
 
+interface AnalyticsRow {
+  position: UserPosition | null;
+  attendee: {
+    gender: string | null;
+    faculty: string | null;
+    year_of_study: string | null;
+  } | null;
+}
+
 function normalizeGender(gender: string | null | undefined) {
   if (!gender) return "Unspecified";
   const g = gender.toLowerCase();
@@ -79,36 +88,103 @@ function countBy<T extends string>(values: T[]) {
 }
 
 export function EventRegistrationsTab({ event }: { event: { id: string } }) {
+  const [analytics, setAnalytics] = React.useState<AnalyticsRow[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = React.useState(true);
+
   const [rows, setRows] = React.useState<RegistrationRow[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [listTotal, setListTotal] = React.useState(0);
+  const [listLoading, setListLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
+  const [term, setTerm] = React.useState("");
   const [faculty, setFaculty] = React.useState("ALL");
   const [page, setPage] = React.useState(1);
 
+  // Summary stats + charts: loaded once, only the columns they need.
   React.useEffect(() => {
     let active = true;
     (async () => {
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from("registrations")
-        .select(
-          "id, attendee_id, status, position, attendee_tag_url, created_at, attendee:profiles(*)",
-        )
-        .eq("event_id", event.id)
-        .order("created_at", { ascending: false });
-      if (!active) return;
-      if (error) {
-        console.error(error);
-        setLoading(false);
-        return;
+      const all: AnalyticsRow[] = [];
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("registrations")
+          .select(
+            "position, attendee:profiles!attendee_id(gender, faculty, year_of_study)",
+          )
+          .eq("event_id", event.id)
+          .range(from, from + pageSize - 1);
+        if (error) {
+          console.error(error);
+          break;
+        }
+        for (const r of data ?? []) all.push(r as unknown as AnalyticsRow);
+        if (!data || data.length < pageSize) break;
       }
-      setRows((data ?? []) as unknown as RegistrationRow[]);
-      setLoading(false);
+      if (!active) return;
+      setAnalytics(all);
+      setAnalyticsLoading(false);
     })();
     return () => {
       active = false;
     };
   }, [event.id]);
+
+  // Debounce the search box; any change resets to the first page.
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      setTerm(query.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  // The list itself: only the current page (25 rows) is fetched.
+  React.useEffect(() => {
+    let active = true;
+    (async () => {
+      const supabase = createClient();
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      let request = supabase
+        .from("registrations")
+        .select(
+          "id, attendee_id, status, position, attendee_tag_url, created_at, attendee:profiles!attendee_id!inner(first_name, last_name, email, person_number, year_of_study, gender)",
+          { count: "exact" },
+        )
+        .eq("event_id", event.id)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (faculty !== "ALL") {
+        request = request.eq("profiles.faculty", faculty);
+      }
+      const safe = term.replace(/[,()%\\*]/g, " ").trim();
+      if (safe) {
+        request = request.or(
+          `first_name.ilike.%${safe}%,last_name.ilike.%${safe}%,email.ilike.%${safe}%,person_number.ilike.%${safe}%`,
+          { referencedTable: "profiles" },
+        );
+      }
+
+      const { data, count, error } = await request;
+      if (!active) return;
+      if (error) {
+        console.error(error);
+        setRows([]);
+        setListTotal(0);
+        setListLoading(false);
+        return;
+      }
+      setRows((data ?? []) as unknown as RegistrationRow[]);
+      setListTotal(count ?? 0);
+      setListLoading(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [event.id, term, faculty, page]);
 
   // Admin action: generate + email the attendee tag on their behalf, then
   // populate the row with the returned tag URL.
@@ -137,77 +213,66 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
     );
   }, []);
 
-  const total = rows.length;
+  const total = analytics.length;
 
   const genderData = React.useMemo(() => {
-    const counts = countBy(rows.map((r) => normalizeGender(r.attendee?.gender)));
+    const counts = countBy(
+      analytics.map((r) => normalizeGender(r.attendee?.gender)),
+    );
     return ["Male", "Female"]
       .map((name) => ({ name, value: counts[name] ?? 0 }))
       .filter((d) => d.value > 0);
-  }, [rows]);
+  }, [analytics]);
 
   const positionData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => (r.position ? POSITION_LABELS[r.position] : "Unknown")),
+      analytics.map((r) =>
+        r.position ? POSITION_LABELS[r.position] : "Unknown",
+      ),
     );
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [rows]);
+  }, [analytics]);
 
   const facultyData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => r.attendee?.faculty || "Unspecified"),
+      analytics.map((r) => r.attendee?.faculty || "Unspecified"),
     );
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [rows]);
+  }, [analytics]);
 
   const yearData = React.useMemo(() => {
     const counts = countBy(
-      rows.map((r) => r.attendee?.year_of_study || "Unspecified"),
+      analytics.map((r) => r.attendee?.year_of_study || "Unspecified"),
     );
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [rows]);
+  }, [analytics]);
 
-  const filtered = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
-      const matchesFaculty =
-        faculty === "ALL" || (r.attendee?.faculty ?? "") === faculty;
-      if (!matchesFaculty) return false;
-      if (!q) return true;
-      const name =
-        `${r.attendee?.first_name ?? ""} ${r.attendee?.last_name ?? ""}`.toLowerCase();
-      return (
-        name.includes(q) ||
-        (r.attendee?.email ?? "").toLowerCase().includes(q) ||
-        (r.attendee?.person_number ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [rows, query, faculty]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(listTotal / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
 
   function handleQuery(value: string) {
+    setListLoading(true);
     setQuery(value);
-    setPage(1);
   }
 
   function handleFaculty(value: string) {
+    setListLoading(true);
     setFaculty(value);
     setPage(1);
   }
 
-  if (loading) {
+  function goToPage(next: number) {
+    setListLoading(true);
+    setPage(next);
+  }
+
+  if (analyticsLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-6">
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-xl" />
           ))}
         </div>
@@ -237,6 +302,8 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
 
   const maleCount = genderData.find((d) => d.name === "Male")?.value ?? 0;
   const femaleCount = genderData.find((d) => d.name === "Female")?.value ?? 0;
+  const rangeStart = listTotal === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, listTotal);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -268,7 +335,8 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
         <div className="flex flex-col gap-3 border-b border-gray-200 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="size-4" />
-            {filtered.length} {filtered.length === 1 ? "registration" : "registrations"}
+            {listTotal} {listTotal === 1 ? "registration" : "registrations"}
+            {listLoading && <Loader2 className="size-3.5 animate-spin" />}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">
@@ -296,47 +364,56 @@ export function EventRegistrationsTab({ event }: { event: { id: string } }) {
           </div>
         </div>
 
-        {pageRows.length === 0 ? (
+        {listLoading && rows.length === 0 ? (
+          <div className="space-y-2 p-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 rounded-lg" />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="px-6 py-14 text-center text-sm text-gray-600">
             No attendees match your search.
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {pageRows.map((row) => (
-              <RegistrationListRow
-                key={row.id}
-                row={row}
-                onSendTag={sendTag}
-              />
+            {rows.map((row) => (
+              <RegistrationListRow key={row.id} row={row} onSendTag={sendTag} />
             ))}
           </div>
         )}
 
-        {totalPages > 1 && (
+        {listTotal > 0 && (
           <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 p-4 sm:flex-row">
             <p className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              Showing {rangeStart}–{rangeEnd} of {listTotal}
             </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="size-4" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || listLoading}
+                >
+                  <ChevronLeft className="size-4" />
+                  Previous
+                </Button>
+                <span className="px-1 text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    goToPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages || listLoading}
+                >
+                  Next
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>

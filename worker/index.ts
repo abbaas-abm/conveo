@@ -4,11 +4,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { deliverRegistrationEmail } from "@/lib/email/registration";
 import { deliverPledgeDocument } from "@/lib/email/pledge";
 import { deliverEventReport } from "@/lib/email/report";
+import { deliverReminderEmail } from "@/lib/email/reminder";
 import type { UserPosition } from "@/lib/types";
 import type {
   PledgeJob,
   RegistrationJob,
   ReportJob,
+  ReminderJob,
 } from "@/lib/queue";
 
 const url = process.env.REDIS_URL?.trim();
@@ -73,7 +75,27 @@ const reportWorker = new Worker<ReportJob>(
   { connection, concurrency: 2 },
 );
 
-for (const worker of [registrationWorker, pledgeWorker, reportWorker]) {
+const reminderWorker = new Worker<ReminderJob>(
+  "reminders",
+  async (job) => {
+    const supabase = createAdminClient();
+    await deliverReminderEmail({
+      supabase,
+      registrationId: job.data.registrationId,
+      throwOnError: true,
+    });
+    log(job, `reminder processed for ${job.data.registrationId}`);
+  },
+  // Plunk allows ~1000 emails/min; 5 concurrent keeps us comfortably under it.
+  { connection, concurrency: 5 },
+);
+
+for (const worker of [
+  registrationWorker,
+  pledgeWorker,
+  reportWorker,
+  reminderWorker,
+]) {
   worker.on("failed", (job, error) => {
     console.error(
       `[worker] ${worker.name} job ${job?.id ?? "?"} failed:`,
@@ -82,7 +104,9 @@ for (const worker of [registrationWorker, pledgeWorker, reportWorker]) {
   });
 }
 
-console.log("[worker] listening for registrations, pledges, reports");
+console.log(
+  "[worker] listening for registrations, pledges, reports, reminders",
+);
 
 async function shutdown(signal: string) {
   console.log(`[worker] received ${signal}, shutting down`);
@@ -90,6 +114,7 @@ async function shutdown(signal: string) {
     registrationWorker.close(),
     pledgeWorker.close(),
     reportWorker.close(),
+    reminderWorker.close(),
   ]);
   await connection.quit();
   process.exit(0);

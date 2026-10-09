@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 
-export type QueueName = "registrations" | "pledges" | "reports";
+export type QueueName = "registrations" | "pledges" | "reports" | "reminders";
 
 export interface RegistrationJob {
   registrationId: string;
@@ -27,6 +27,10 @@ export interface PledgeJob {
 export interface ReportJob {
   eventId: string;
   to: string;
+}
+
+export interface ReminderJob {
+  registrationId: string;
 }
 
 const globalForQueue = globalThis as unknown as {
@@ -72,6 +76,7 @@ function getQueues(): Record<QueueName, Queue> | null {
         registrations: makeQueue("registrations", connection),
         pledges: makeQueue("pledges", connection),
         reports: makeQueue("reports", connection),
+        reminders: makeQueue("reminders", connection),
       }
     : null;
   return globalForQueue.__conveoQueues;
@@ -121,5 +126,42 @@ export async function enqueue(
     // Redis is unavailable; caller falls back to inline delivery.
     logRedisError(new Error("enqueue failed"));
     return false;
+  }
+}
+
+export interface QueueCounts {
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+}
+
+/**
+ * BullMQ job counts for a queue, or null when Redis is not configured/reachable.
+ * Used to show live progress while a queued batch is processed by the worker.
+ */
+export async function getQueueCounts(
+  queue: QueueName,
+): Promise<QueueCounts | null> {
+  const queues = getQueues();
+  if (!queues) return null;
+  try {
+    const counts = await queues[queue].getJobCounts(
+      "waiting",
+      "active",
+      "completed",
+      "failed",
+      "delayed",
+    );
+    return {
+      waiting: counts.waiting ?? 0,
+      active: counts.active ?? 0,
+      completed: counts.completed ?? 0,
+      failed: counts.failed ?? 0,
+      delayed: counts.delayed ?? 0,
+    };
+  } catch {
+    return null;
   }
 }
