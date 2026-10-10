@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Building2,
   CalendarDays,
   FileSignature,
   FileText,
@@ -36,6 +37,7 @@ import type { Profile } from "@/lib/types";
 const NAV_ITEMS = [
   { href: "/admin/profile", label: "Profile", icon: User },
   { href: "/admin/people", label: "Users", icon: Users },
+  { href: "/admin/residence", label: "Residence", icon: Building2 },
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/reflections", label: "Reflections", icon: StickyNote },

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import QRCode from "qrcode";
+import { sanitizeDataForPdf } from "@/lib/pdf/sanitize";
 
 export interface AttendeeBadgeData {
   eventTitle: string;
@@ -82,6 +83,8 @@ function drawCentered(
 export async function generateAttendeeBadge(
   data: AttendeeBadgeData,
 ): Promise<Uint8Array> {
+  // Strip characters the standard font can't encode (emoji, etc.).
+  data = sanitizeDataForPdf(data);
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([PAGE_W, PAGE_H]);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);

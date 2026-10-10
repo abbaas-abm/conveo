@@ -170,6 +170,37 @@ export async function getAllProfiles(): Promise<Profile[]> {
   }
 }
 
+export interface ResidenceStat {
+  residence: string;
+  count: number;
+}
+
+// Members per Wits residence (profiles that selected a university residence),
+// most members first. Paginated past PostgREST's 1000-row cap.
+export async function getResidenceStats(): Promise<ResidenceStat[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  const counts: Record<string, number> = {};
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("university_res")
+      .range(from, from + pageSize - 1);
+    if (error) break;
+    for (const row of (data ?? []) as Array<{
+      university_res: string | null;
+    }>) {
+      const value = (row.university_res ?? "").trim();
+      if (value) counts[value] = (counts[value] ?? 0) + 1;
+    }
+    if (!data || data.length < pageSize) break;
+  }
+  return Object.entries(counts)
+    .map(([residence, count]) => ({ residence, count }))
+    .sort((a, b) => b.count - a.count || a.residence.localeCompare(b.residence));
+}
+
 export async function getSpeakers(): Promise<Speaker[]> {
   const supabase = await createClient();
   if (!supabase) return [];

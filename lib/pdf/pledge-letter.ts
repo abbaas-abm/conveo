@@ -7,6 +7,7 @@ import {
   type PDFFont,
   type PDFPage,
 } from "pdf-lib";
+import { sanitizeDataForPdf } from "@/lib/pdf/sanitize";
 
 export interface PledgeLetterData {
   eventTitle: string;
@@ -67,6 +68,8 @@ function drawCentered(
 export async function generatePledgeLetter(
   data: PledgeLetterData,
 ): Promise<Uint8Array> {
+  // Strip characters the standard font can't encode (emoji, etc.).
+  data = sanitizeDataForPdf(data);
   const pdf = await PDFDocument.create();
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
