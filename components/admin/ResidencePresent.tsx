@@ -9,7 +9,7 @@ import type { ResidenceStat } from "@/lib/data";
 
 type Phase = "idle" | "countdown" | "revealed";
 
-const COUNTDOWN_FROM = 10;
+const COUNTDOWN_FROM = 5;
 
 export function ResidencePresent({ stats }: { stats: ResidenceStat[] }) {
   const [phase, setPhase] = React.useState<Phase>("idle");
@@ -73,11 +73,11 @@ export function ResidencePresent({ stats }: { stats: ResidenceStat[] }) {
                 Residences
               </p>
               <h1 className="mt-6 text-4xl font-semibold leading-tight text-white text-balance sm:text-6xl">
-                Which residence has the most members?
+                Which residence has the most attendees?
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-base text-white/60 sm:text-lg">
                 {stats.length > 0
-                  ? `${stats.length} residences · ${total} residents`
+                  ? `${stats.length} residences`
                   : "No residence data yet."}
               </p>
               <Button
