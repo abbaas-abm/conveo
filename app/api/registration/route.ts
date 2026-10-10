@@ -48,25 +48,6 @@ export async function POST(request: Request) {
     .maybeSingle();
   const alreadyConfirmed = existing?.status === "CONFIRMED";
 
-  // RSVP gate: a new registration is only allowed if the signed-in email is on
-  // the `rsvped` list. (Already-confirmed attendees are grandfathered.)
-  if (!alreadyConfirmed) {
-    const { data: hasRsvp, error: rsvpError } =
-      await supabase.rpc("has_rsvped");
-    if (rsvpError) {
-      console.error("RSVP check failed:", rsvpError);
-    }
-    if (!hasRsvp) {
-      return NextResponse.json(
-        {
-          error:
-            "No RSVP found. This event requires you to RSVP. RSVP's have closed.",
-        },
-        { status: 403 },
-      );
-    }
-  }
-
   const { data: registrationRow, error } = await supabase
     .from("registrations")
     .upsert(
