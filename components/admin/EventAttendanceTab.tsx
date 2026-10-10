@@ -76,11 +76,14 @@ function countBy<T extends string>(values: T[]) {
 }
 
 function dayKey(dateISO: string) {
-  const d = new Date(dateISO);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  // Group by the South African calendar day (matches how dates are shown
+  // everywhere else), not the browser's local timezone.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Johannesburg",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(dateISO));
 }
 
 export function EventAttendanceTab({
@@ -109,34 +112,52 @@ export function EventAttendanceTab({
     let active = true;
     (async () => {
       const supabase = createClient();
-      const [attendanceRes, registrationRes] = await Promise.all([
-        supabase
+      const pageSize = 1000;
+
+      // Attendance is fetched in full (paginated past PostgREST's 1000-row cap)
+      // so totals and per-day counts are correct.
+      const all: AttendanceRow[] = [];
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
           .from("attendance")
           .select(
-            "id, event_id, attendee_id, volunteer_id, created_at, attendee:profiles!attendee_id(*), volunteer:profiles!volunteer_id(*)",
+            "id, event_id, attendee_id, volunteer_id, created_at, attendee:profiles!attendee_id(first_name, last_name, email, gender, faculty, year_of_study, person_number), volunteer:profiles!volunteer_id(first_name, last_name)",
           )
           .eq("event_id", event.id)
-          .order("created_at", { ascending: false }),
-        supabase
+          .order("created_at", { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (!active) return;
+        if (error) {
+          console.error(error);
+          setLoading(false);
+          return;
+        }
+        for (const r of data ?? []) all.push(r as unknown as AttendanceRow);
+        if (!data || data.length < pageSize) break;
+      }
+
+      // Registrant positions (also paginated).
+      const map: Record<string, UserPosition> = {};
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
           .from("registrations")
           .select("attendee_id, position")
-          .eq("event_id", event.id),
-      ]);
+          .eq("event_id", event.id)
+          .range(from, from + pageSize - 1);
+        if (!active) return;
+        if (error) break;
+        for (const r of (data ?? []) as Array<{
+          attendee_id: string;
+          position: UserPosition | null;
+        }>) {
+          if (r.position) map[r.attendee_id] = r.position;
+        }
+        if (!data || data.length < pageSize) break;
+      }
+
       if (!active) return;
-      if (attendanceRes.error) {
-        console.error(attendanceRes.error);
-        setLoading(false);
-        return;
-      }
-      const map: Record<string, UserPosition> = {};
-      for (const r of (registrationRes.data ?? []) as Array<{
-        attendee_id: string;
-        position: UserPosition | null;
-      }>) {
-        if (r.position) map[r.attendee_id] = r.position;
-      }
       setPositions(map);
-      setRows((attendanceRes.data ?? []) as unknown as AttendanceRow[]);
+      setRows(all);
       setLoading(false);
     })();
     return () => {
@@ -145,6 +166,16 @@ export function EventAttendanceTab({
   }, [event.id]);
 
   const total = rows.length;
+
+  // Per-day check-in counts (sum to the total).
+  const dayCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const r of rows) {
+      const key = dayKey(r.created_at);
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [rows]);
 
   const dayRows = React.useMemo(() => {
     if (dayFilter === "ALL") return rows;
@@ -284,7 +315,7 @@ export function EventAttendanceTab({
                 setPage(1);
               }}
             >
-              All days
+              All days ({total})
             </DayPill>
             {dayKeys.map((key, index) => (
               <DayPill
@@ -295,7 +326,7 @@ export function EventAttendanceTab({
                   setPage(1);
                 }}
               >
-                Day {index + 1}
+                Day {index + 1} ({dayCounts[key] ?? 0})
               </DayPill>
             ))}
           </div>
